@@ -46,18 +46,20 @@
 #define OPENVPN_MAX_CIPHER_BLOCK_SIZE 32
 
 /* Maximum HMAC digest size (bytes) */
-#define OPENVPN_MAX_HMAC_SIZE   64
+#define OPENVPN_MAX_HMAC_SIZE 64
 
 /** Types referencing specific message digest hashing algorithms */
-typedef enum {
+typedef enum
+{
     MD_SHA1,
     MD_SHA256
 } hash_algo_type;
 
 /** Struct used in cipher name translation table */
-typedef struct {
-    const char *openvpn_name;   /**< Cipher name used by OpenVPN */
-    const char *lib_name;       /**< Cipher name used by crypto library */
+typedef struct
+{
+    const char *openvpn_name; /**< Cipher name used by OpenVPN */
+    const char *lib_name;     /**< Cipher name used by crypto library */
 } cipher_name_pair;
 
 /** Cipher name translation table */
@@ -78,7 +80,6 @@ void crypto_clear_error(void);
  * Initialise the given named crypto engine.
  */
 void crypto_init_lib_engine(const char *engine_name);
-
 
 /**
  * Load the given (OpenSSL) providers
@@ -201,6 +202,7 @@ bool cipher_valid_reason(const char *ciphername, const char **reason);
  *
  * @return              if the cipher is valid
  */
+
 static inline bool
 cipher_valid(const char *ciphername)
 {
@@ -281,7 +283,6 @@ int cipher_kt_tag_size(const char *ciphername);
  */
 bool cipher_kt_insecure(const char *ciphername);
 
-
 /**
  * Check if the supplied cipher is a supported CBC mode cipher.
  *
@@ -308,7 +309,6 @@ bool cipher_kt_mode_ofb_cfb(const char *ciphername);
  * @return              true iff the cipher is a AEAD mode cipher.
  */
 bool cipher_kt_mode_aead(const char *ciphername);
-
 
 /**
  *
@@ -479,7 +479,6 @@ int cipher_ctx_final(cipher_ctx_t *ctx, uint8_t *dst, int *dst_len);
 int cipher_ctx_final_check_tag(cipher_ctx_t *ctx, uint8_t *dst, int *dst_len,
                                uint8_t *tag, size_t tag_len);
 
-
 /*
  *
  * Generic message digest information functions
@@ -506,7 +505,6 @@ md_defined(const char *mdname)
 {
     return strcmp(mdname, "none") != 0;
 }
-
 
 /**
  * Return if a message digest parameters is valid given the name of the digest.
@@ -535,7 +533,6 @@ const char *md_kt_name(const char *mdname);
  * @return              Message digest size, in bytes, or 0 if ctx was NULL.
  */
 unsigned char md_kt_size(const char *mdname);
-
 
 /*
  *
@@ -610,7 +607,6 @@ void md_ctx_update(md_ctx_t *ctx, const uint8_t *src, int src_len);
  */
 void md_ctx_final(md_ctx_t *ctx, uint8_t *dst);
 
-
 /*
  *
  * Generic HMAC functions
@@ -641,7 +637,6 @@ void hmac_ctx_free(hmac_ctx_t *ctx);
  *
  */
 void hmac_ctx_init(hmac_ctx_t *ctx, const uint8_t *key, const char *mdname);
-
 
 /*
  * Free the given HMAC context.
@@ -702,7 +697,6 @@ const char *translate_cipher_name_from_openvpn(const char *cipher_name);
  *                      matching cipher name was found.
  */
 const char *translate_cipher_name_to_openvpn(const char *cipher_name);
-
 
 /**
  * Calculates the TLS 1.0-1.1 PRF function. For the exact specification of the

@@ -21,6 +21,10 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+/*
+The #ifdef ... #endif block is a preprocessor directive used in C and C++ to conditionally include or exclude code during compilation.
+*/
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -45,7 +49,6 @@ process_signal_p2p(struct context *c)
     return process_signal(c);
 }
 
-
 /**************************************************************************/
 /**
  * Main event loop for OpenVPN in client mode, where only one VPN tunnel
@@ -55,6 +58,11 @@ process_signal_p2p(struct context *c)
  * @param c - The context structure of the single active VPN tunnel.
  */
 static void
+
+/*The tunnel_point_to_point function sets up and manages the VPN tunnel's state, prepares for I/O, and processes data packets.*/
+
+/*msg(M_INFO, "%s", "==========in to init crypto layer");*/
+
 tunnel_point_to_point(struct context *c)
 {
     context_clear_2(c);
@@ -64,11 +72,18 @@ tunnel_point_to_point(struct context *c)
     /* initialize tunnel instance, avoid SIGHUP when config is stdin since
      * re-reading the config from stdin will not work */
     bool stdin_config = c->options.config && (strcmp(c->options.config, "stdin") == 0);
+
+    /*The function init_instance_handle_signals is responsible for setting up the tunnel instance, configuring it (including mutual authentication, key exchange, and tunnel setup), and managing signal handling both before and after the initialization of the tunnel.*/
+
     init_instance_handle_signals(c, c->es, stdin_config ? 0 : CC_HARD_USR1_TO_HUP);
     if (IS_SIG(c))
     {
         return;
     }
+
+    msg(M_INFO, "========== Begining of tunnel_point_to_point %s", c->options.ciphername);
+    msg(M_INFO, "========== Begining of tunnel_point_to_point %s", c->options.ncp_ciphers);
+    // msg(M_INFO, "%s", "========================================");
 
     /* main event loop */
     while (true)
@@ -107,8 +122,9 @@ tunnel_point_to_point(struct context *c)
 
 #undef PROCESS_SIGNAL_P2P
 
-void
-init_early(struct context *c)
+/*init_early: Initializes key components like the network context, verbosity levels, and cryptographic providers early in the process.*/
+
+void init_early(struct context *c)
 {
     net_ctx_init(c, &c->net_ctx);
 
@@ -125,6 +141,8 @@ init_early(struct context *c)
     }
 }
 
+/*uninit_early: Frees the resources initialized by init_early, including unloading crypto providers and cleaning up the network context.*/
+
 static void
 uninit_early(struct context *c)
 {
@@ -135,7 +153,6 @@ uninit_early(struct context *c)
     }
     net_ctx_free(&c->net_ctx);
 }
-
 
 /**************************************************************************/
 /**
@@ -157,10 +174,10 @@ uninit_early(struct context *c)
  * @param argc - Commandline argument count.
  * @param argv - Commandline argument values.
  */
-static
-int
+static int
 openvpn_main(int argc, char *argv[])
 {
+    // This structure (struct context) holds all state-related information needed for OpenVPN.
     struct context c;
 
 #if PEDANTIC
@@ -310,16 +327,16 @@ openvpn_main(int argc, char *argv[])
                 /* run tunnel depending on mode */
                 switch (c.options.mode)
                 {
-                    case MODE_POINT_TO_POINT:
-                        tunnel_point_to_point(&c);
-                        break;
+                case MODE_POINT_TO_POINT:
+                    tunnel_point_to_point(&c);
+                    break;
 
-                    case MODE_SERVER:
-                        tunnel_server(&c);
-                        break;
+                case MODE_SERVER:
+                    tunnel_server(&c);
+                    break;
 
-                    default:
-                        ASSERT(0);
+                default:
+                    ASSERT(0);
                 }
 
                 /* indicates first iteration -- has program-wide scope */
@@ -333,15 +350,15 @@ openvpn_main(int argc, char *argv[])
 
                 /* pass restart status to management subsystem */
                 signal_restart_status(c.sig);
-            }
-            while (signal_reset(c.sig, SIGUSR1) == SIGUSR1);
+                /*SIGUSR1 loop: Restarts the VPN connection.*/
+            } while (signal_reset(c.sig, SIGUSR1) == SIGUSR1);
 
             env_set_destroy(c.es);
             uninit_options(&c.options);
             gc_reset(&c.gc);
             uninit_early(&c);
-        }
-        while (signal_reset(c.sig, SIGHUP) == SIGHUP);
+            /*SIGHUP loop: Reloads the VPN configuration.*/
+        } while (signal_reset(c.sig, SIGHUP) == SIGHUP);
     }
 
     context_gc_free(&c);
@@ -358,15 +375,28 @@ openvpn_main(int argc, char *argv[])
     return 0;                               /* NOTREACHED */
 }
 
+/*
+
+different main function implementations for Windows vs other operating systems.
+
+When you run a program from the command line like:
+
+openvpn --config server.conf
+
+or
+
+sudo systemctl start openvpn@myserver
+[/usr/sbin/openvpn --config /etc/openvpn/server/myserver.conf]
+
+*/
 #ifdef _WIN32
-int
-wmain(int argc, wchar_t *wargv[])
+int wmain(int argc, wchar_t *wargv[])
 {
     char **argv;
     int ret;
     int i;
 
-    if ((argv = calloc(argc+1, sizeof(char *))) == NULL)
+    if ((argv = calloc(argc + 1, sizeof(char *))) == NULL)
     {
         return 1;
     }
@@ -389,8 +419,7 @@ wmain(int argc, wchar_t *wargv[])
     return ret;
 }
 #else  /* ifdef _WIN32 */
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     return openvpn_main(argc, argv);
 }

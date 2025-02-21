@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "xor_cipher.h": "c"
+        "xor_cipher.h": "c",
+        "stddef.h": "c",
+        "evp.h": "c"
     }
 }

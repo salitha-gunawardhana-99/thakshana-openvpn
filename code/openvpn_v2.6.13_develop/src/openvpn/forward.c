@@ -128,7 +128,7 @@ check_tls_errors(struct context *c)
 static inline void
 context_immediate_reschedule(struct context *c)
 {
-    c->c2.timeval.tv_sec = 0;  /* ZERO-TIMEOUT */
+    c->c2.timeval.tv_sec = 0; /* ZERO-TIMEOUT */
     c->c2.timeval.tv_usec = 0;
 }
 
@@ -146,8 +146,7 @@ context_reschedule_sec(struct context *c, int sec)
     }
 }
 
-void
-check_dco_key_status(struct context *c)
+void check_dco_key_status(struct context *c)
 {
     /* DCO context is not yet initialised or enabled */
     if (!dco_enabled(&c->options))
@@ -186,9 +185,9 @@ check_tls(struct context *c)
 
     if (interval_test(&c->c2.tmp_int))
     {
-        const int tmp_status = tls_multi_process
-                                   (c->c2.tls_multi, &c->c2.to_link, &c->c2.to_link_addr,
-                                   get_link_socket_info(c), &wakeup);
+        const int tmp_status = tls_multi_process(c->c2.tls_multi, &c->c2.to_link, &c->c2.to_link_addr,
+                                                 get_link_socket_info(c), &wakeup);
+        // msg(M_INFO, "tmp_status: %d", tmp_status);
 
         if (tmp_status == TLSMP_RECONNECT)
         {
@@ -320,6 +319,7 @@ check_incoming_control_channel(struct context *c)
 static void
 check_push_request(struct context *c)
 {
+    // msg(M_INFO, "%s", "==========in to check_push_request");
     send_push_request(c);
 
     /* if no response to first push_request, retry at PUSH_REQUEST_INTERVAL second intervals */
@@ -377,9 +377,8 @@ check_connection_established(struct context *c)
     }
 }
 
-bool
-send_control_channel_string_dowork(struct tls_session *session,
-                                   const char *str, int msglevel)
+bool send_control_channel_string_dowork(struct tls_session *session,
+                                        const char *str, int msglevel)
 {
     struct gc_arena gc = gc_new();
     bool stat;
@@ -388,26 +387,24 @@ send_control_channel_string_dowork(struct tls_session *session,
     struct key_state *ks = &session->key[KS_PRIMARY];
 
     /* buffered cleartext write onto TLS control channel */
-    stat = tls_send_payload(ks, (uint8_t *) str, strlen(str) + 1);
+    stat = tls_send_payload(ks, (uint8_t *)str, strlen(str) + 1);
 
     msg(msglevel, "SENT CONTROL [%s]: '%s' (status=%d)",
         session->common_name ? session->common_name : "UNDEF",
         sanitize_control_message(str, &gc),
-        (int) stat);
+        (int)stat);
 
     gc_free(&gc);
     return stat;
 }
 
-void
-reschedule_multi_process(struct context *c)
+void reschedule_multi_process(struct context *c)
 {
     interval_action(&c->c2.tmp_int);
     context_immediate_reschedule(c); /* ZERO-TIMEOUT */
 }
 
-bool
-send_control_channel_string(struct context *c, const char *str, int msglevel)
+bool send_control_channel_string(struct context *c, const char *str, int msglevel)
 {
     if (c->c2.tls_multi)
     {
@@ -459,8 +456,8 @@ check_add_routes(struct context *c)
                 register_signal(c->sig, SIGHUP, "ip-fail");
                 c->persist.restart_sleep_seconds = 10;
 #ifdef _WIN32
-                show_routes(M_INFO|M_NOPREFIX);
-                show_adapters(M_INFO|M_NOPREFIX);
+                show_routes(M_INFO | M_NOPREFIX);
+                show_adapters(M_INFO | M_NOPREFIX);
 #endif
             }
         }
@@ -506,8 +503,7 @@ check_inactivity_timeout(struct context *c)
     register_signal(c->sig, SIGTERM, "inactive");
 }
 
-int
-get_server_poll_remaining_time(struct event_timeout *server_poll_timeout)
+int get_server_poll_remaining_time(struct event_timeout *server_poll_timeout)
 {
     update_time();
     int remaining = event_timeout_remaining(server_poll_timeout);
@@ -530,8 +526,7 @@ check_server_poll_timeout(struct context *c)
 /*
  * Schedule a SIGTERM signal c->options.scheduled_exit_interval seconds from now.
  */
-bool
-schedule_exit(struct context *c)
+bool schedule_exit(struct context *c)
 {
     const int n_seconds = c->options.scheduled_exit_interval;
     /* don't reschedule if already scheduled. */
@@ -622,8 +617,7 @@ buffer_turnover(const uint8_t *orig_buf, struct buffer *dest_stub, struct buffer
  * Input: c->c2.buf
  * Output: c->c2.to_link
  */
-void
-encrypt_sign(struct context *c, bool comp_frag)
+void encrypt_sign(struct context *c, bool comp_frag)
 {
     struct context_buffers *b = c->c2.buffers;
     const uint8_t *orig_buf = c->c2.buf.data;
@@ -632,7 +626,7 @@ encrypt_sign(struct context *c, bool comp_frag)
     if (dco_enabled(&c->options))
     {
         msg(M_WARN, "Attempting to send data packet while data channel offload is in use. "
-            "Dropping packet");
+                    "Dropping packet");
         c->c2.buf.len = 0;
     }
 
@@ -712,9 +706,8 @@ encrypt_sign(struct context *c, bool comp_frag)
 static void
 check_session_timeout(struct context *c)
 {
-    if (c->options.session_timeout
-        && event_timeout_trigger(&c->c2.session_interval, &c->c2.timeval,
-                                 ETT_DEFAULT))
+    if (c->options.session_timeout && event_timeout_trigger(&c->c2.session_interval, &c->c2.timeval,
+                                                            ETT_DEFAULT))
     {
         msg(M_INFO, "Session timeout, exiting");
         register_signal(c->sig, SIGTERM, "session-timeout");
@@ -728,16 +721,14 @@ static void
 process_coarse_timers(struct context *c)
 {
     /* flush current packet-id to file once per 60
-    * seconds if --replay-persist was specified */
-    if (packet_id_persist_enabled(&c->c1.pid_persist)
-        && event_timeout_trigger(&c->c2.packet_id_persist_interval, &c->c2.timeval, ETT_DEFAULT))
+     * seconds if --replay-persist was specified */
+    if (packet_id_persist_enabled(&c->c1.pid_persist) && event_timeout_trigger(&c->c2.packet_id_persist_interval, &c->c2.timeval, ETT_DEFAULT))
     {
         packet_id_persist_save(&c->c1.pid_persist);
     }
 
     /* Should we write timer-triggered status file */
-    if (c->c1.status_output
-        && event_timeout_trigger(&c->c1.status_output->et, &c->c2.timeval, ETT_DEFAULT))
+    if (c->c1.status_output && event_timeout_trigger(&c->c1.status_output->et, &c->c2.timeval, ETT_DEFAULT))
     {
         check_status_file(c);
     }
@@ -751,6 +742,7 @@ process_coarse_timers(struct context *c)
     /* see if we should send a push_request (option --pull) */
     if (event_timeout_trigger(&c->c2.push_request_interval, &c->c2.timeval, ETT_DEFAULT))
     {
+        /*leads to SENT CONTROL [myserver]: 'PUSH_REQUEST' (status=1)*/
         check_push_request(c);
     }
 
@@ -767,8 +759,7 @@ process_coarse_timers(struct context *c)
     }
 
     /* possibly exit due to --inactive */
-    if (c->options.inactivity_timeout
-        && event_timeout_trigger(&c->c2.inactivity_interval, &c->c2.timeval, ETT_DEFAULT))
+    if (c->options.inactivity_timeout && event_timeout_trigger(&c->c2.inactivity_interval, &c->c2.timeval, ETT_DEFAULT))
     {
         check_inactivity_timeout(c);
     }
@@ -794,8 +785,7 @@ process_coarse_timers(struct context *c)
 
     if (c->c2.tls_multi)
     {
-        if (c->options.ce.connect_timeout
-            && event_timeout_trigger(&c->c2.server_poll_interval, &c->c2.timeval, ETT_DEFAULT))
+        if (c->options.ce.connect_timeout && event_timeout_trigger(&c->c2.server_poll_interval, &c->c2.timeval, ETT_DEFAULT))
         {
             check_server_poll_timeout(c);
         }
@@ -865,10 +855,10 @@ check_timeout_random_component_dowork(struct context *c)
 {
     const int update_interval = 10; /* seconds */
     c->c2.update_timeout_random_component = now + update_interval;
-    c->c2.timeout_random_component.tv_usec = (time_t) get_random() & 0x0003FFFF;
+    c->c2.timeout_random_component.tv_usec = (time_t)get_random() & 0x0003FFFF;
     c->c2.timeout_random_component.tv_sec = 0;
 
-    dmsg(D_INTERVAL, "RANDOM USEC=%ld", (long) c->c2.timeout_random_component.tv_usec);
+    dmsg(D_INTERVAL, "RANDOM USEC=%ld", (long)c->c2.timeout_random_component.tv_usec);
 }
 
 static inline void
@@ -931,8 +921,7 @@ link_socket_write_post_size_adjust(int *size,
  * Output: c->c2.buf
  */
 
-void
-read_incoming_link(struct context *c, struct link_socket *sock)
+void read_incoming_link(struct context *c, struct link_socket *sock)
 {
     /*
      * Set up for recvfrom call to read datagram
@@ -997,8 +986,7 @@ read_incoming_link(struct context *c, struct link_socket *sock)
     perf_pop();
 }
 
-bool
-process_incoming_link_part1(struct context *c, struct link_socket_info *lsi, bool floated)
+bool process_incoming_link_part1(struct context *c, struct link_socket_info *lsi, bool floated)
 {
     struct gc_arena gc = gc_new();
     bool decrypt_status = false;
@@ -1147,8 +1135,7 @@ process_incoming_link_part1(struct context *c, struct link_socket_info *lsi, boo
     return decrypt_status;
 }
 
-void
-process_incoming_link_part2(struct context *c, struct link_socket_info *lsi, const uint8_t *orig_buf)
+void process_incoming_link_part2(struct context *c, struct link_socket_info *lsi, const uint8_t *orig_buf)
 {
     if (c->c2.buf.len > 0)
     {
@@ -1258,35 +1245,37 @@ process_incoming_dco(struct context *c)
     if (dco->dco_message_peer_id != c->c2.tls_multi->dco_peer_id)
     {
         msg(D_DCO_DEBUG, "%s: received message for mismatching peer-id %d, "
-            "expected %d", __func__, dco->dco_message_peer_id,
+                         "expected %d",
+            __func__, dco->dco_message_peer_id,
             c->c2.tls_multi->dco_peer_id);
         return;
     }
 
     switch (dco->dco_message_type)
     {
-        case OVPN_CMD_DEL_PEER:
-            /* peer is gone, unset ID to prevent more kernel calls */
-            c->c2.tls_multi->dco_peer_id = -1;
-            if (dco->dco_del_peer_reason == OVPN_DEL_PEER_REASON_EXPIRED)
-            {
-                msg(D_DCO_DEBUG, "%s: received peer expired notification of for peer-id "
-                    "%d", __func__, dco->dco_message_peer_id);
-                trigger_ping_timeout_signal(c);
-                return;
-            }
-            break;
-
-        case OVPN_CMD_SWAP_KEYS:
-            msg(D_DCO_DEBUG, "%s: received key rotation notification for peer-id %d",
+    case OVPN_CMD_DEL_PEER:
+        /* peer is gone, unset ID to prevent more kernel calls */
+        c->c2.tls_multi->dco_peer_id = -1;
+        if (dco->dco_del_peer_reason == OVPN_DEL_PEER_REASON_EXPIRED)
+        {
+            msg(D_DCO_DEBUG, "%s: received peer expired notification of for peer-id "
+                             "%d",
                 __func__, dco->dco_message_peer_id);
-            tls_session_soft_reset(c->c2.tls_multi);
-            break;
-
-        default:
-            msg(D_DCO_DEBUG, "%s: received message of type %u - ignoring", __func__,
-                dco->dco_message_type);
+            trigger_ping_timeout_signal(c);
             return;
+        }
+        break;
+
+    case OVPN_CMD_SWAP_KEYS:
+        msg(D_DCO_DEBUG, "%s: received key rotation notification for peer-id %d",
+            __func__, dco->dco_message_peer_id);
+        tls_session_soft_reset(c->c2.tls_multi);
+        break;
+
+    default:
+        msg(D_DCO_DEBUG, "%s: received message of type %u - ignoring", __func__,
+            dco->dco_message_type);
+        return;
     }
 
 #endif /* if defined(ENABLE_DCO) && (defined(TARGET_LINUX) || defined(TARGET_FREEBSD)) */
@@ -1296,8 +1285,7 @@ process_incoming_dco(struct context *c)
  * Output: c->c2.buf
  */
 
-void
-read_incoming_tun(struct context *c)
+void read_incoming_tun(struct context *c)
 {
     /*
      * Setup for read() call on TUN/TAP device.
@@ -1323,7 +1311,7 @@ read_incoming_tun(struct context *c)
     }
     else
     {
-        sockethandle_t sh = { .is_handle = true, .h = c->c1.tuntap->hand };
+        sockethandle_t sh = {.is_handle = true, .h = c->c1.tuntap->hand};
         sockethandle_finalize(sh, &c->c1.tuntap->reads, &c->c2.buf, NULL);
     }
 #else  /* ifdef _WIN32 */
@@ -1399,7 +1387,7 @@ drop_if_recursive_routing(struct context *c, struct buffer *buf)
     if (proto_ver == 4)
     {
         /* make sure we got whole IP header */
-        if (BLEN(buf) < ((int) sizeof(struct openvpn_iphdr) + ip_hdr_offset))
+        if (BLEN(buf) < ((int)sizeof(struct openvpn_iphdr) + ip_hdr_offset))
         {
             return;
         }
@@ -1410,7 +1398,7 @@ drop_if_recursive_routing(struct context *c, struct buffer *buf)
             return;
         }
 
-        struct openvpn_iphdr *pip = (struct openvpn_iphdr *) (BPTR(buf) + ip_hdr_offset);
+        struct openvpn_iphdr *pip = (struct openvpn_iphdr *)(BPTR(buf) + ip_hdr_offset);
 
         /* drop packets with same dest addr as gateway */
         if (memcmp(&tun_sa.addr.in4.sin_addr.s_addr, &pip->daddr, sizeof(pip->daddr)) == 0)
@@ -1421,7 +1409,7 @@ drop_if_recursive_routing(struct context *c, struct buffer *buf)
     else if (proto_ver == 6)
     {
         /* make sure we got whole IPv6 header */
-        if (BLEN(buf) < ((int) sizeof(struct openvpn_ipv6hdr) + ip_hdr_offset))
+        if (BLEN(buf) < ((int)sizeof(struct openvpn_ipv6hdr) + ip_hdr_offset))
         {
             return;
         }
@@ -1432,7 +1420,7 @@ drop_if_recursive_routing(struct context *c, struct buffer *buf)
             return;
         }
 
-        struct openvpn_ipv6hdr *pip6 = (struct openvpn_ipv6hdr *) (BPTR(buf) + ip_hdr_offset);
+        struct openvpn_ipv6hdr *pip6 = (struct openvpn_ipv6hdr *)(BPTR(buf) + ip_hdr_offset);
 
         /* drop packets with same dest addr as gateway */
         if (OPENVPN_IN6_ARE_ADDR_EQUAL(&tun_sa.addr.in6.sin6_addr, &pip6->daddr))
@@ -1458,8 +1446,7 @@ drop_if_recursive_routing(struct context *c, struct buffer *buf)
  * Output: c->c2.to_link
  */
 
-void
-process_incoming_tun(struct context *c, struct link_socket *out_sock)
+void process_incoming_tun(struct context *c, struct link_socket *out_sock)
 {
     struct gc_arena gc = gc_new();
 
@@ -1490,8 +1477,7 @@ process_incoming_tun(struct context *c, struct link_socket *out_sock)
          * The --passtos and --mssfix options require
          * us to examine the IP header (IPv4 or IPv6).
          */
-        unsigned int flags = PIPV4_PASSTOS | PIP_MSSFIX | PIPV4_CLIENT_NAT
-                             | PIPV6_ICMP_NOHOST_CLIENT;
+        unsigned int flags = PIPV4_PASSTOS | PIP_MSSFIX | PIPV4_CLIENT_NAT | PIPV6_ICMP_NOHOST_CLIENT;
         process_ip_header(c, flags, &c->c2.buf, out_sock);
 
 #ifdef PACKET_TRUNCATION_CHECK
@@ -1502,7 +1488,6 @@ process_incoming_tun(struct context *c, struct link_socket *out_sock)
                                 "PRE_ENCRYPT",
                                 &c->c2.n_trunc_pre_encrypt);
 #endif
-
     }
     if (c->c2.buf.len > 0)
     {
@@ -1526,8 +1511,7 @@ process_incoming_tun(struct context *c, struct link_socket *out_sock)
  *
  * @param client    - determines whether to the send packet back via tun or link
  */
-void
-ipv6_send_icmp_unreachable(struct context *c, struct buffer *buf, bool client)
+void ipv6_send_icmp_unreachable(struct context *c, struct buffer *buf, bool client)
 {
 #define MAX_ICMPV6LEN 1280
     struct openvpn_icmp6hdr icmp6out;
@@ -1578,8 +1562,7 @@ ipv6_send_icmp_unreachable(struct context *c, struct buffer *buf, bool client)
     icmp6out.icmp6_type = OPENVPN_ICMP6_DESTINATION_UNREACHABLE;
     icmp6out.icmp6_code = OPENVPN_ICMP6_DU_NOROUTE;
 
-    int icmpheader_len = sizeof(struct openvpn_ipv6hdr)
-                         + sizeof(struct openvpn_icmp6hdr);
+    int icmpheader_len = sizeof(struct openvpn_ipv6hdr) + sizeof(struct openvpn_icmp6hdr);
     int totalheader_len = icmpheader_len;
 
     if (TUNNEL_TYPE(c->c1.tuntap) == DEV_TYPE_TAP)
@@ -1624,8 +1607,7 @@ ipv6_send_icmp_unreachable(struct context *c, struct buffer *buf, bool client)
     uint16_t new_csum = ip_checksum(AF_INET6, BPTR(outbuf), BLEN(outbuf),
                                     (const uint8_t *)&pip6out.saddr,
                                     (uint8_t *)&pip6out.daddr, OPENVPN_IPPROTO_ICMPV6);
-    ((struct openvpn_icmp6hdr *) BPTR(outbuf))->icmp6_cksum = htons(new_csum);
-
+    ((struct openvpn_icmp6hdr *)BPTR(outbuf))->icmp6_cksum = htons(new_csum);
 
     /* IPv6 Header */
     ASSERT(buf_write_prepend(outbuf, &pip6out, sizeof(struct openvpn_ipv6hdr)));
@@ -1640,7 +1622,7 @@ ipv6_send_icmp_unreachable(struct context *c, struct buffer *buf, bool client)
             return;
         }
 
-        const struct openvpn_ethhdr *orig_ethhdr = (struct openvpn_ethhdr *) BPTR(buf);
+        const struct openvpn_ethhdr *orig_ethhdr = (struct openvpn_ethhdr *)BPTR(buf);
 
         /* Copy frametype and reverse source/destination for the response */
         struct openvpn_ethhdr ethhdr;
@@ -1652,9 +1634,8 @@ ipv6_send_icmp_unreachable(struct context *c, struct buffer *buf, bool client)
 #undef MAX_ICMPV6LEN
 }
 
-void
-process_ip_header(struct context *c, unsigned int flags, struct buffer *buf,
-                  struct link_socket *sock)
+void process_ip_header(struct context *c, unsigned int flags, struct buffer *buf,
+                       struct link_socket *sock)
 {
     if (!c->options.ce.mssfix)
     {
@@ -1721,15 +1702,13 @@ process_ip_header(struct context *c, unsigned int flags, struct buffer *buf,
             {
                 mss_fixup_ipv6(&ipbuf, c->c2.frame.mss_fix);
             }
-            if (!(flags & PIP_OUTGOING) && (flags
-                                            &(PIPV6_ICMP_NOHOST_CLIENT | PIPV6_ICMP_NOHOST_SERVER)))
+            if (!(flags & PIP_OUTGOING) && (flags & (PIPV6_ICMP_NOHOST_CLIENT | PIPV6_ICMP_NOHOST_SERVER)))
             {
                 ipv6_send_icmp_unreachable(c, buf,
                                            (bool)(flags & PIPV6_ICMP_NOHOST_CLIENT));
                 /* Drop the IPv6 packet */
                 buf->len = 0;
             }
-
         }
     }
 }
@@ -1738,8 +1717,7 @@ process_ip_header(struct context *c, unsigned int flags, struct buffer *buf,
  * Input: c->c2.to_link
  */
 
-void
-process_outgoing_link(struct context *c, struct link_socket *sock)
+void process_outgoing_link(struct context *c, struct link_socket *sock)
 {
     struct gc_arena gc = gc_new();
     int error_code = 0;
@@ -1867,8 +1845,7 @@ process_outgoing_link(struct context *c, struct link_socket *sock)
 #else
                            ENETUNREACH;
 #endif
-        if (size < 0 && unreachable && c->c2.tls_multi
-            && !tls_initial_packet_received(c->c2.tls_multi) && c->options.mode == MODE_POINT_TO_POINT)
+        if (size < 0 && unreachable && c->c2.tls_multi && !tls_initial_packet_received(c->c2.tls_multi) && c->options.mode == MODE_POINT_TO_POINT)
         {
             msg(M_INFO, "Network unreachable, restarting");
             register_signal(c->sig, SIGUSR1, "network-unreachable");
@@ -1895,8 +1872,7 @@ process_outgoing_link(struct context *c, struct link_socket *sock)
  * Input: c->c2.to_tun
  */
 
-void
-process_outgoing_tun(struct context *c, struct link_socket *in_sock)
+void process_outgoing_tun(struct context *c, struct link_socket *in_sock)
 {
     /*
      * Set up for write() call to TUN/TAP
@@ -1913,7 +1889,7 @@ process_outgoing_tun(struct context *c, struct link_socket *in_sock)
      * The --mssfix option requires
      * us to examine the IP header (IPv4 or IPv6).
      */
-    process_ip_header(c, PIP_MSSFIX|PIPV4_EXTRACT_DHCP_ROUTER|PIPV4_CLIENT_NAT|PIP_OUTGOING, &c->c2.to_tun,
+    process_ip_header(c, PIP_MSSFIX | PIPV4_EXTRACT_DHCP_ROUTER | PIPV4_CLIENT_NAT | PIP_OUTGOING, &c->c2.to_tun,
                       in_sock);
 
     if (c->c2.to_tun.len <= c->c2.frame.buf.payload_size)
@@ -1991,8 +1967,7 @@ process_outgoing_tun(struct context *c, struct link_socket *in_sock)
     perf_pop();
 }
 
-void
-pre_select(struct context *c)
+void pre_select(struct context *c)
 {
     /* make sure current time (now) is updated on function entry */
 
@@ -2063,17 +2038,16 @@ pre_select(struct context *c)
  * point-to-multipoint mode.
  */
 
-void
-io_wait_dowork(struct context *c, const unsigned int flags)
+void io_wait_dowork(struct context *c, const unsigned int flags)
 {
     unsigned int socket = 0;
     unsigned int tuntap = 0;
     struct event_set_return esr[4];
 
     /* These shifts all depend on EVENT_READ and EVENT_WRITE */
-    static uintptr_t socket_shift = SOCKET_SHIFT;   /* depends on SOCKET_READ and SOCKET_WRITE */
-    static uintptr_t tun_shift = TUN_SHIFT;      /* depends on TUN_READ and TUN_WRITE */
-    static uintptr_t err_shift = ERR_SHIFT;      /* depends on ES_ERROR */
+    static uintptr_t socket_shift = SOCKET_SHIFT; /* depends on SOCKET_READ and SOCKET_WRITE */
+    static uintptr_t tun_shift = TUN_SHIFT;       /* depends on TUN_READ and TUN_WRITE */
+    static uintptr_t err_shift = ERR_SHIFT;       /* depends on ES_ERROR */
 #ifdef ENABLE_MANAGEMENT
     static uintptr_t management_shift = MANAGEMENT_SHIFT; /* depends on MANAGEMENT_READ and MANAGEMENT_WRITE */
 #endif
@@ -2081,7 +2055,7 @@ io_wait_dowork(struct context *c, const unsigned int flags)
     static uintptr_t file_shift = FILE_SHIFT;
 #endif
 #if defined(TARGET_LINUX) || defined(TARGET_FREEBSD)
-    static uintptr_t dco_shift = DCO_SHIFT;    /* Event from DCO linux kernel module */
+    static uintptr_t dco_shift = DCO_SHIFT; /* Event from DCO linux kernel module */
 #endif
 
     /*
@@ -2301,13 +2275,12 @@ io_wait_dowork(struct context *c, const unsigned int flags)
     dmsg(D_EVENT_WAIT, "I/O WAIT status=0x%04x", c->c2.event_set_status);
 }
 
-void
-process_io(struct context *c, struct link_socket *sock)
+void process_io(struct context *c, struct link_socket *sock)
 {
     const unsigned int status = c->c2.event_set_status;
 
 #ifdef ENABLE_MANAGEMENT
-    if (status & (MANAGEMENT_READ|MANAGEMENT_WRITE))
+    if (status & (MANAGEMENT_READ | MANAGEMENT_WRITE))
     {
         ASSERT(management);
         management_io(management);

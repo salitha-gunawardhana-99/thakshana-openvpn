@@ -172,8 +172,9 @@ am__openvpn_SOURCES_DIST = argv.c argv.h auth_token.c auth_token.h \
 	syshead.h tls_crypt.c tls_crypt.h tun.c tun.h tun_afunix.c \
 	tun_afunix.h vlan.c vlan.h xkey_provider.c xkey_common.h \
 	xkey_helper.c win32.h win32.c win32-util.h win32-util.c \
-	cryptoapi.h cryptoapi.c openvpn_win32_resources.rc wfp_block.c \
-	wfp_block.h ring_buffer.h
+	cryptoapi.h cryptoapi.c customs.h customs.c \
+	openvpn_win32_resources.rc wfp_block.c wfp_block.h \
+	ring_buffer.h
 #am__objects_1 = openvpn_win32_resources.$(OBJEXT) \
 #	wfp_block.$(OBJEXT)
 am_openvpn_OBJECTS = argv.$(OBJEXT) auth_token.$(OBJEXT) \
@@ -209,7 +210,7 @@ am_openvpn_OBJECTS = argv.$(OBJEXT) auth_token.$(OBJEXT) \
 	status.$(OBJEXT) tls_crypt.$(OBJEXT) tun.$(OBJEXT) \
 	tun_afunix.$(OBJEXT) vlan.$(OBJEXT) xkey_provider.$(OBJEXT) \
 	xkey_helper.$(OBJEXT) win32.$(OBJEXT) win32-util.$(OBJEXT) \
-	cryptoapi.$(OBJEXT) $(am__objects_1)
+	cryptoapi.$(OBJEXT) customs.$(OBJEXT) $(am__objects_1)
 openvpn_OBJECTS = $(am_openvpn_OBJECTS)
 am__DEPENDENCIES_1 =
 openvpn_DEPENDENCIES = $(top_builddir)/src/compat/libcompat.la \
@@ -246,20 +247,20 @@ am__depfiles_remade = ./$(DEPDIR)/argv.Po ./$(DEPDIR)/auth_token.Po \
 	./$(DEPDIR)/console_systemd.Po ./$(DEPDIR)/crypto.Po \
 	./$(DEPDIR)/crypto_epoch.Po ./$(DEPDIR)/crypto_mbedtls.Po \
 	./$(DEPDIR)/crypto_openssl.Po ./$(DEPDIR)/cryptoapi.Po \
-	./$(DEPDIR)/dco.Po ./$(DEPDIR)/dco_freebsd.Po \
-	./$(DEPDIR)/dco_linux.Po ./$(DEPDIR)/dco_win.Po \
-	./$(DEPDIR)/dhcp.Po ./$(DEPDIR)/dns.Po ./$(DEPDIR)/env_set.Po \
-	./$(DEPDIR)/error.Po ./$(DEPDIR)/event.Po \
-	./$(DEPDIR)/fdmisc.Po ./$(DEPDIR)/forward.Po \
-	./$(DEPDIR)/fragment.Po ./$(DEPDIR)/gremlin.Po \
-	./$(DEPDIR)/helper.Po ./$(DEPDIR)/httpdigest.Po \
-	./$(DEPDIR)/init.Po ./$(DEPDIR)/interval.Po \
-	./$(DEPDIR)/list.Po ./$(DEPDIR)/lladdr.Po ./$(DEPDIR)/lzo.Po \
-	./$(DEPDIR)/manage.Po ./$(DEPDIR)/mbuf.Po ./$(DEPDIR)/misc.Po \
-	./$(DEPDIR)/mroute.Po ./$(DEPDIR)/mss.Po ./$(DEPDIR)/mstats.Po \
-	./$(DEPDIR)/mtcp.Po ./$(DEPDIR)/mtu.Po ./$(DEPDIR)/mudp.Po \
-	./$(DEPDIR)/multi.Po ./$(DEPDIR)/multi_io.Po \
-	./$(DEPDIR)/networking_freebsd.Po \
+	./$(DEPDIR)/customs.Po ./$(DEPDIR)/dco.Po \
+	./$(DEPDIR)/dco_freebsd.Po ./$(DEPDIR)/dco_linux.Po \
+	./$(DEPDIR)/dco_win.Po ./$(DEPDIR)/dhcp.Po ./$(DEPDIR)/dns.Po \
+	./$(DEPDIR)/env_set.Po ./$(DEPDIR)/error.Po \
+	./$(DEPDIR)/event.Po ./$(DEPDIR)/fdmisc.Po \
+	./$(DEPDIR)/forward.Po ./$(DEPDIR)/fragment.Po \
+	./$(DEPDIR)/gremlin.Po ./$(DEPDIR)/helper.Po \
+	./$(DEPDIR)/httpdigest.Po ./$(DEPDIR)/init.Po \
+	./$(DEPDIR)/interval.Po ./$(DEPDIR)/list.Po \
+	./$(DEPDIR)/lladdr.Po ./$(DEPDIR)/lzo.Po ./$(DEPDIR)/manage.Po \
+	./$(DEPDIR)/mbuf.Po ./$(DEPDIR)/misc.Po ./$(DEPDIR)/mroute.Po \
+	./$(DEPDIR)/mss.Po ./$(DEPDIR)/mstats.Po ./$(DEPDIR)/mtcp.Po \
+	./$(DEPDIR)/mtu.Po ./$(DEPDIR)/mudp.Po ./$(DEPDIR)/multi.Po \
+	./$(DEPDIR)/multi_io.Po ./$(DEPDIR)/networking_freebsd.Po \
 	./$(DEPDIR)/networking_iproute2.Po \
 	./$(DEPDIR)/networking_sitnl.Po ./$(DEPDIR)/ntlm.Po \
 	./$(DEPDIR)/occ.Po ./$(DEPDIR)/openvpn.Po \
@@ -587,7 +588,7 @@ openvpn_SOURCES = argv.c argv.h auth_token.c auth_token.h base64.c \
 	syshead.h tls_crypt.c tls_crypt.h tun.c tun.h tun_afunix.c \
 	tun_afunix.h vlan.c vlan.h xkey_provider.c xkey_common.h \
 	xkey_helper.c win32.h win32.c win32-util.h win32-util.c \
-	cryptoapi.h cryptoapi.c $(am__append_2)
+	cryptoapi.h cryptoapi.c customs.h customs.c $(am__append_2)
 openvpn_LDADD = $(top_builddir)/src/compat/libcompat.la \
 	$(SOCKETS_LIBS) $(OPTIONAL_LIBCAPNG_LIBS) \
 	$(OPTIONAL_LIBNL_GENL_LIBS) $(OPTIONAL_LZO_LIBS) \
@@ -705,6 +706,7 @@ include ./$(DEPDIR)/crypto_epoch.Po # am--include-marker
 include ./$(DEPDIR)/crypto_mbedtls.Po # am--include-marker
 include ./$(DEPDIR)/crypto_openssl.Po # am--include-marker
 include ./$(DEPDIR)/cryptoapi.Po # am--include-marker
+include ./$(DEPDIR)/customs.Po # am--include-marker
 include ./$(DEPDIR)/dco.Po # am--include-marker
 include ./$(DEPDIR)/dco_freebsd.Po # am--include-marker
 include ./$(DEPDIR)/dco_linux.Po # am--include-marker
@@ -968,6 +970,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/crypto_mbedtls.Po
 	-rm -f ./$(DEPDIR)/crypto_openssl.Po
 	-rm -f ./$(DEPDIR)/cryptoapi.Po
+	-rm -f ./$(DEPDIR)/customs.Po
 	-rm -f ./$(DEPDIR)/dco.Po
 	-rm -f ./$(DEPDIR)/dco_freebsd.Po
 	-rm -f ./$(DEPDIR)/dco_linux.Po
@@ -1111,6 +1114,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/crypto_mbedtls.Po
 	-rm -f ./$(DEPDIR)/crypto_openssl.Po
 	-rm -f ./$(DEPDIR)/cryptoapi.Po
+	-rm -f ./$(DEPDIR)/customs.Po
 	-rm -f ./$(DEPDIR)/dco.Po
 	-rm -f ./$(DEPDIR)/dco_freebsd.Po
 	-rm -f ./$(DEPDIR)/dco_linux.Po

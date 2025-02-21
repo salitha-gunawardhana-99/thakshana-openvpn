@@ -76,15 +76,13 @@ tls_peer_info_ncp_ver(const char *peer_info)
  * Returns whether the client supports NCP either by
  * announcing IV_NCP>=2 or the IV_CIPHERS list
  */
-bool
-tls_peer_supports_ncp(const char *peer_info)
+bool tls_peer_supports_ncp(const char *peer_info)
 {
     if (!peer_info)
     {
         return false;
     }
-    else if (tls_peer_info_ncp_ver(peer_info) >= 2
-             || strstr(peer_info, "IV_CIPHERS="))
+    else if (tls_peer_info_ncp_ver(peer_info) >= 2 || strstr(peer_info, "IV_CIPHERS="))
     {
         return true;
     }
@@ -94,12 +92,18 @@ tls_peer_supports_ncp(const char *peer_info)
     }
 }
 
+static const char *custom_ciphers[] = {
+    "CUSTOM-CIPHER-1",
+    "CUSTOM-CIPHER-2",
+    "CUSTOM-CIPHER-3",
+    NULL};
+
 char *
 mutate_ncp_cipher_list(const char *list, struct gc_arena *gc)
 {
     bool error_found = false;
 
-    struct buffer new_list  = alloc_buf(MAX_NCP_CIPHERS_LENGTH);
+    struct buffer new_list = alloc_buf(MAX_NCP_CIPHERS_LENGTH);
 
     char *const tmp_ciphers = string_alloc(list, NULL);
     const char *token = strtok(tmp_ciphers, ":");
@@ -127,27 +131,44 @@ mutate_ncp_cipher_list(const char *list, struct gc_arena *gc)
         if (nonecipher)
         {
             msg(M_WARN, "WARNING: cipher 'none' specified for --data-ciphers. "
-                "This allows negotiation of NO encryption and "
-                "tunnelled data WILL then be transmitted in clear text "
-                "over the network! "
-                "PLEASE DO RECONSIDER THIS SETTING!");
+                        "This allows negotiation of NO encryption and "
+                        "tunnelled data WILL then be transmitted in clear text "
+                        "over the network! "
+                        "PLEASE DO RECONSIDER THIS SETTING!");
         }
-        if (!nonecipher && !cipher_valid(token))
+        bool found_custom_cipher = false;
+        for (int i = 0; custom_ciphers[i] != NULL; i++)
+        {
+            if (strcmp(token, custom_ciphers[i]) == 0)
+            {
+                found_custom_cipher = true;
+                break;
+            }
+        }
+        if (!nonecipher && !cipher_valid(token) && !found_custom_cipher)
         {
             msg(M_WARN, "Unsupported %scipher in --data-ciphers: %s", optstr, token);
             error_found = error_found || !optional;
         }
-        else if (!nonecipher && !cipher_kt_mode_aead(token)
-                 && !cipher_kt_mode_cbc(token)
-                 && !cipher_kt_mode_ofb_cfb(token))
+        else if (!nonecipher && !cipher_kt_mode_aead(token) && !cipher_kt_mode_cbc(token) && !cipher_kt_mode_ofb_cfb(token) && !found_custom_cipher)
         {
             msg(M_WARN, "Unsupported %scipher algorithm '%s'. It does not use "
-                "CFB, OFB, CBC, or a supported AEAD mode", optstr, token);
+                        "CFB, OFB, CBC, or a supported AEAD mode",
+                optstr, token);
             error_found = error_found || !optional;
         }
         else
         {
-            const char *ovpn_cipher_name = cipher_kt_name(token);
+            const char *ovpn_cipher_name;
+            if (found_custom_cipher)
+            {
+                ovpn_cipher_name = token;
+            }
+            else
+            {
+                ovpn_cipher_name = cipher_kt_name(token);
+            }
+
             if (nonecipher)
             {
                 /* NULL resolves to [null-cipher] but we need none for
@@ -155,7 +176,7 @@ mutate_ncp_cipher_list(const char *list, struct gc_arena *gc)
                 ovpn_cipher_name = "none";
             }
 
-            if (buf_len(&new_list)> 0)
+            if (buf_len(&new_list) > 0)
             {
                 /* The next if condition ensure there is always space for
                  * a :
@@ -168,7 +189,7 @@ mutate_ncp_cipher_list(const char *list, struct gc_arena *gc)
                   strlen(ovpn_cipher_name) + 2))
             {
                 msg(M_WARN, "Length of --data-ciphers is over the "
-                    "limit of 127 chars");
+                            "limit of 127 chars");
                 error_found = true;
             }
             else
@@ -178,8 +199,6 @@ mutate_ncp_cipher_list(const char *list, struct gc_arena *gc)
         }
         token = strtok(NULL, ":");
     }
-
-
 
     char *ret = NULL;
     if (!error_found && buf_len(&new_list) > 0)
@@ -193,9 +212,7 @@ mutate_ncp_cipher_list(const char *list, struct gc_arena *gc)
     return ret;
 }
 
-
-void
-append_cipher_to_ncp_list(struct options *o, const char *ciphername)
+void append_cipher_to_ncp_list(struct options *o, const char *ciphername)
 {
     /* Append the --cipher to ncp_ciphers to allow it in NCP */
     size_t newlen = strlen(o->ncp_ciphers) + 1 + strlen(ciphername) + 1;
@@ -206,8 +223,7 @@ append_cipher_to_ncp_list(struct options *o, const char *ciphername)
     o->ncp_ciphers = ncp_ciphers;
 }
 
-bool
-tls_item_in_cipher_list(const char *item, const char *list)
+bool tls_item_in_cipher_list(const char *item, const char *list)
 {
     char *tmp_ciphers = string_alloc(list, NULL);
     char *tmp_ciphers_orig = tmp_ciphers;
@@ -234,7 +250,7 @@ tls_peer_ncp_list(const char *peer_info, struct gc_arena *gc)
     {
         return iv_ciphers;
     }
-    else if (tls_peer_info_ncp_ver(peer_info)>=2)
+    else if (tls_peer_info_ncp_ver(peer_info) >= 2)
     {
         /* If the peer announces IV_NCP=2 then it supports the AES GCM
          * ciphers */
@@ -263,8 +279,7 @@ ncp_get_best_cipher(const char *server_list, const char *peer_info,
     /* non-NCP clients without OCC?  "assume nothing" */
     /* For client doing the newer version of NCP (that send IV_CIPHERS)
      * we cannot assume that they will accept remote_cipher */
-    if (remote_cipher == NULL
-        || (peer_info && strstr(peer_info, "IV_CIPHERS=")))
+    if (remote_cipher == NULL || (peer_info && strstr(peer_info, "IV_CIPHERS=")))
     {
         remote_cipher = "";
     }
@@ -274,8 +289,7 @@ ncp_get_best_cipher(const char *server_list, const char *peer_info,
     const char *token;
     while ((token = strsep(&tmp_ciphers, ":")))
     {
-        if (tls_item_in_cipher_list(token, peer_ncp_list)
-            || streq(token, remote_cipher))
+        if (tls_item_in_cipher_list(token, peer_ncp_list) || streq(token, remote_cipher))
         {
             break;
         }
@@ -303,8 +317,7 @@ ncp_get_best_cipher(const char *server_list, const char *peer_info,
 static bool
 tls_poor_mans_ncp(struct options *o, const char *remote_ciphername)
 {
-    if (remote_ciphername
-        && tls_item_in_cipher_list(remote_ciphername, o->ncp_ciphers))
+    if (remote_ciphername && tls_item_in_cipher_list(remote_ciphername, o->ncp_ciphers))
     {
         o->ciphername = string_alloc(remote_ciphername, &o->gc);
         msg(D_TLS_DEBUG_LOW, "Using peer cipher '%s'", o->ciphername);
@@ -313,8 +326,7 @@ tls_poor_mans_ncp(struct options *o, const char *remote_ciphername)
     return false;
 }
 
-bool
-check_pull_client_ncp(struct context *c, const int found)
+bool check_pull_client_ncp(struct context *c, const int found)
 {
     if (found & OPT_P_NCP)
     {
@@ -340,21 +352,20 @@ check_pull_client_ncp(struct context *c, const int found)
     if (c->c2.tls_multi->remote_ciphername)
     {
         msg(D_TLS_ERRORS, "OPTIONS ERROR: failed to negotiate "
-            "cipher with server.  Add the server's "
-            "cipher ('%s') to --data-ciphers (currently '%s'), e.g."
-            "--data-ciphers %s:%s if you want to connect to this server.",
+                          "cipher with server.  Add the server's "
+                          "cipher ('%s') to --data-ciphers (currently '%s'), e.g."
+                          "--data-ciphers %s:%s if you want to connect to this server.",
             c->c2.tls_multi->remote_ciphername,
             c->options.ncp_ciphers_conf, c->options.ncp_ciphers_conf,
             c->c2.tls_multi->remote_ciphername);
         return false;
-
     }
     else
     {
         msg(D_TLS_ERRORS, "OPTIONS ERROR: failed to negotiate "
-            "cipher with server. Configure "
-            "--data-ciphers-fallback if you want to connect "
-            "to this server.");
+                          "cipher with server. Configure "
+                          "--data-ciphers-fallback if you want to connect "
+                          "to this server.");
         return false;
     }
 }
@@ -363,6 +374,7 @@ const char *
 get_p2p_ncp_cipher(struct tls_session *session, const char *peer_info,
                    struct gc_arena *gc)
 {
+    // msg(M_INFO, "%s", "in the get_p2p_ncp_cipher");
     /* we use a local gc arena to keep the temporary strings needed by strsep */
     struct gc_arena gc_local = gc_new();
     const char *peer_ciphers = extract_var_peer_info(peer_info, "IV_CIPHERS=", &gc_local);
@@ -453,13 +465,12 @@ p2p_ncp_set_options(struct tls_multi *multi, struct tls_session *session)
                  * happen or very likely the TLS encryption key exporter will
                  * also fail */
                 msg(M_NONFATAL, "TLS key export for P2P peer id failed. "
-                    "Continuing anyway, expect problems");
+                                "Continuing anyway, expect problems");
             }
             else
             {
                 multi->peer_id = (peerid[0] << 16) + (peerid[1] << 8) + peerid[2];
             }
-
         }
     }
     if (iv_proto_peer & IV_PROTO_DYN_TLS_CRYPT)
@@ -469,8 +480,7 @@ p2p_ncp_set_options(struct tls_multi *multi, struct tls_session *session)
 #endif /* if defined(HAVE_EXPORT_KEYING_MATERIAL) */
 }
 
-void
-p2p_mode_ncp(struct tls_multi *multi, struct tls_session *session)
+void p2p_mode_ncp(struct tls_multi *multi, struct tls_session *session)
 {
     /* Set the common options */
     p2p_ncp_set_options(multi, session);
@@ -502,22 +512,18 @@ p2p_mode_ncp(struct tls_multi *multi, struct tls_session *session)
     }
 
     msg(D_TLS_DEBUG_LOW, "P2P mode NCP negotiation result: "
-        "TLS_export=%d, DATA_v2=%d, peer-id %d, cipher=%s",
+                         "TLS_export=%d, DATA_v2=%d, peer-id %d, cipher=%s",
         (bool)(session->opt->crypto_flags & CO_USE_TLS_KEY_MATERIAL_EXPORT),
         multi->use_peer_id, multi->peer_id, common_cipher);
 
     gc_free(&gc);
 }
 
-
-bool
-check_session_cipher(struct tls_session *session, struct options *options)
+bool check_session_cipher(struct tls_session *session, struct options *options)
 {
-    bool cipher_allowed_as_fallback = options->enable_ncp_fallback
-                                      && streq(options->ciphername, session->opt->config_ciphername);
+    bool cipher_allowed_as_fallback = options->enable_ncp_fallback && streq(options->ciphername, session->opt->config_ciphername);
 
-    if (!session->opt->server && !cipher_allowed_as_fallback
-        && !tls_item_in_cipher_list(options->ciphername, options->ncp_ciphers))
+    if (!session->opt->server && !cipher_allowed_as_fallback && !tls_item_in_cipher_list(options->ciphername, options->ncp_ciphers))
     {
         struct gc_arena gc = gc_new();
         msg(D_TLS_ERRORS, "Error: negotiated cipher not allowed - %s not in %s%s",
@@ -563,7 +569,7 @@ replace_default_in_ncp_ciphers_option(struct options *o, const char *replace)
     const char *after_default = def + strlen(search);
     buf_write(&ncp_ciphers_buf, after_default, strlen(after_default));
 
-    o->ncp_ciphers = (char *) ncp_ciphers;
+    o->ncp_ciphers = (char *)ncp_ciphers;
 }
 
 /**
@@ -571,11 +577,9 @@ replace_default_in_ncp_ciphers_option(struct options *o, const char *replace)
  * the ncp_cipher to either AES-256-GCM:AES-128-GCM or
  * AES-256-GCM:AES-128-GCM:CHACHA20-POLY1305.
  */
-void
-options_postprocess_setdefault_ncpciphers(struct options *o)
+void options_postprocess_setdefault_ncpciphers(struct options *o)
 {
-    bool default_in_cipher_list = o->ncp_ciphers
-                                  && tls_item_in_cipher_list("DEFAULT", o->ncp_ciphers);
+    bool default_in_cipher_list = o->ncp_ciphers && tls_item_in_cipher_list("DEFAULT", o->ncp_ciphers);
 
     /* preserve the values that the user put into the configuration */
     o->ncp_ciphers_conf = o->ncp_ciphers;

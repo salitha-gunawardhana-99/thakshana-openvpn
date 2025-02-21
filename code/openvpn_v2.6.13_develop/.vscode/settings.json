@@ -1,5 +1,19 @@
 {
     "files.associations": {
-        "config.h": "c"
+        "config.h": "c",
+        "crypto.h": "c",
+        "openssl_compat.h": "c",
+        "crypto_backend.h": "c",
+        "conf.h": "c",
+        "des.h": "c",
+        "integer.h": "c",
+        "buffer.h": "c",
+        "crypto_openssl.h": "c",
+        "crypto_mbedtls.h": "c",
+        "error.h": "c",
+        "ssl_verify.h": "c",
+        "ssl.h": "c",
+        "push.h": "c",
+        "gremlin.h": "c"
     }
 }

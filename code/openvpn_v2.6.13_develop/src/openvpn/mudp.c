@@ -61,7 +61,6 @@ send_hmac_reset_packet(struct multi_context *m,
     msg(D_MULTI_DEBUG, "Reset packet from client, sending HMAC based reset challenge");
 }
 
-
 /* Returns true if this packet should create a new session */
 static bool
 do_pre_decrypt_check(struct multi_context *m,
@@ -124,7 +123,8 @@ do_pre_decrypt_check(struct multi_context *m,
                 struct gc_arena gc = gc_new();
                 const char *peer = print_link_socket_actual(&m->top.c2.from, &gc);
                 msg(D_MULTI_DEBUG, "tls-crypt-v2 force-cookie is enabled, "
-                    "ignoring connection attempt from old client (%s)", peer);
+                                   "ignoring connection attempt from old client (%s)",
+                    peer);
                 gc_free(&gc);
                 return false;
             }
@@ -144,10 +144,8 @@ do_pre_decrypt_check(struct multi_context *m,
 
         /* We have a reply do not create a new session */
         return false;
-
     }
-    else if (verdict == VERDICT_VALID_CONTROL_V1 || verdict == VERDICT_VALID_ACK_V1
-             || verdict == VERDICT_VALID_WKC_V1)
+    else if (verdict == VERDICT_VALID_CONTROL_V1 || verdict == VERDICT_VALID_ACK_V1 || verdict == VERDICT_VALID_WKC_V1)
     {
         /* ACK_V1 contains the peer id (our id) while CONTROL_V1 can but does not
          * need to contain the peer id */
@@ -156,7 +154,7 @@ do_pre_decrypt_check(struct multi_context *m,
         bool ret = check_session_id_hmac(state, from, hmac, handwindow);
 
         const char *peer = print_link_socket_actual(&m->top.c2.from, &gc);
-        uint8_t pkt_firstbyte = *BPTR( &m->top.c2.buf);
+        uint8_t pkt_firstbyte = *BPTR(&m->top.c2.buf);
         int op = pkt_firstbyte >> P_OPCODE_SHIFT;
 
         if (!ret)
@@ -167,7 +165,8 @@ do_pre_decrypt_check(struct multi_context *m,
         else
         {
             msg(D_MULTI_DEBUG, "Valid packet (%s) with HMAC challenge from peer (%s), "
-                "accepting new connection.", packet_opcode_name(op), peer);
+                               "accepting new connection.",
+                packet_opcode_name(op), peer);
         }
         gc_free(&gc);
 
@@ -194,8 +193,7 @@ multi_get_create_instance_udp(struct multi_context *m, bool *floated,
     struct hash *hash = m->hash;
     real.proto = ls->info.proto;
 
-    if (mroute_extract_openvpn_sockaddr(&real, &m->top.c2.from.dest, true)
-        && m->top.c2.buf.len > 0)
+    if (mroute_extract_openvpn_sockaddr(&real, &m->top.c2.from.dest, true) && m->top.c2.buf.len > 0)
     {
         struct hash_element *he;
         const uint32_t hv = hash_value(hash, &real);
@@ -231,7 +229,7 @@ multi_get_create_instance_udp(struct multi_context *m, bool *floated,
             he = hash_lookup_fast(hash, bucket, &real, hv);
             if (he)
             {
-                mi = (struct multi_instance *) he->value;
+                mi = (struct multi_instance *)he->value;
             }
         }
 
@@ -243,7 +241,8 @@ multi_get_create_instance_udp(struct multi_context *m, bool *floated,
             {
                 msg(D_MULTI_ERRORS,
                     "MULTI: Connection attempt from %s ignored while server is "
-                    "shutting down", mroute_addr_print(&real, &gc));
+                    "shutting down",
+                    mroute_addr_print(&real, &gc));
             }
             else if (do_pre_decrypt_check(m, &state, real))
             {
@@ -267,8 +266,7 @@ multi_get_create_instance_udp(struct multi_context *m, bool *floated,
 
                         /* If we have a session id already, ensure that the
                          * state is using the same */
-                        if (session_id_defined(&state.server_session_id)
-                            && session_id_defined((&state.peer_session_id)))
+                        if (session_id_defined(&state.server_session_id) && session_id_defined((&state.peer_session_id)))
                         {
                             mi->context.c2.tls_multi->n_sessions++;
                             struct tls_session *session = &mi->context.c2.tls_multi->session[TM_INITIAL];
@@ -332,8 +330,8 @@ multi_process_io_udp(struct multi_context *m, struct link_socket *sock)
 {
     const unsigned int status = m->top.c2.event_set_status;
     const unsigned int mpp_flags = m->top.c2.fast_io
-                                   ? (MPP_CONDITIONAL_PRE_SELECT | MPP_CLOSE_ON_SIGNAL)
-                                   : (MPP_PRE_SELECT | MPP_CLOSE_ON_SIGNAL);
+                                       ? (MPP_CONDITIONAL_PRE_SELECT | MPP_CLOSE_ON_SIGNAL)
+                                       : (MPP_PRE_SELECT | MPP_CLOSE_ON_SIGNAL);
 
 #ifdef MULTI_DEBUG_EVENT_LOOP
     char buf[16];
@@ -362,7 +360,7 @@ multi_process_io_udp(struct multi_context *m, struct link_socket *sock)
 #endif /* ifdef MULTI_DEBUG_EVENT_LOOP */
 
 #ifdef ENABLE_MANAGEMENT
-    if (status & (MANAGEMENT_READ|MANAGEMENT_WRITE))
+    if (status & (MANAGEMENT_READ | MANAGEMENT_WRITE))
     {
         ASSERT(management);
         management_io(management);
@@ -459,9 +457,7 @@ p2mp_iow_flags(const struct multi_context *m)
     return flags;
 }
 
-
-void
-tunnel_server_udp(struct context *top)
+void tunnel_server_udp(struct context *top)
 {
     struct multi_context multi;
 
@@ -469,6 +465,9 @@ tunnel_server_udp(struct context *top)
     context_clear_2(top);
 
     /* initialize top-tunnel instance */
+
+    /*The function init_instance_handle_signals is responsible for setting up the tunnel instance, configuring it (including mutual authentication, key exchange, and tunnel setup), and managing signal handling both before and after the initialization of the tunnel.*/
+
     init_instance_handle_signals(top, top->es, CC_HARD_USR1_TO_HUP);
     if (IS_SIG(top))
     {
@@ -511,7 +510,7 @@ tunnel_server_udp(struct context *top)
         /* timeout? */
         if (multi.top.c2.event_set_status == ES_TIMEOUT)
         {
-            multi_process_timeout(&multi, MPP_PRE_SELECT|MPP_CLOSE_ON_SIGNAL);
+            multi_process_timeout(&multi, MPP_PRE_SELECT | MPP_CLOSE_ON_SIGNAL);
         }
         else
         {

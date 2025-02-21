@@ -47,8 +47,7 @@ static char push_reply_cmd[] = "PUSH_REPLY";
  * Client received an authentication failed message from server.
  * Runs on client.
  */
-void
-receive_auth_failed(struct context *c, const struct buffer *buffer)
+void receive_auth_failed(struct context *c, const struct buffer *buffer)
 {
     msg(M_VERB0, "AUTH: Received control message: %s", BSTR(buffer));
     c->options.no_advance = true;
@@ -91,21 +90,21 @@ receive_auth_failed(struct context *c, const struct buffer *buffer)
     {
         switch (auth_retry_get())
         {
-            case AR_NONE:
-                /* SOFT-SIGTERM -- Auth failure error */
-                register_signal(c->sig, SIGTERM, "auth-failure");
-                break;
+        case AR_NONE:
+            /* SOFT-SIGTERM -- Auth failure error */
+            register_signal(c->sig, SIGTERM, "auth-failure");
+            break;
 
-            case AR_INTERACT:
-                ssl_purge_auth(false);
+        case AR_INTERACT:
+            ssl_purge_auth(false);
 
-            case AR_NOINTERACT:
-                /* SOFT-SIGTUSR1 -- Auth failure error */
-                register_signal(c->sig, SIGUSR1, "auth-failure");
-                break;
+        case AR_NOINTERACT:
+            /* SOFT-SIGTUSR1 -- Auth failure error */
+            register_signal(c->sig, SIGUSR1, "auth-failure");
+            break;
 
-            default:
-                ASSERT(0);
+        default:
+            ASSERT(0);
         }
     }
 #ifdef ENABLE_MANAGEMENT
@@ -116,20 +115,17 @@ receive_auth_failed(struct context *c, const struct buffer *buffer)
     /*
      * Save the dynamic-challenge text even when management is defined
      */
-    if (authfail_extended
-        && buf_string_match_head_str(&buf, "CRV1:") && BLEN(&buf))
+    if (authfail_extended && buf_string_match_head_str(&buf, "CRV1:") && BLEN(&buf))
     {
         ssl_put_auth_challenge(BSTR(&buf));
     }
 #endif /* ifdef ENABLE_MANAGEMENT */
-
 }
 
 /*
  * Act on received restart message from server
  */
-void
-server_pushed_signal(struct context *c, const struct buffer *buffer, const bool restart, const int adv)
+void server_pushed_signal(struct context *c, const struct buffer *buffer, const bool restart, const int adv)
 {
     if (c->options.pull)
     {
@@ -188,8 +184,7 @@ server_pushed_signal(struct context *c, const struct buffer *buffer, const bool 
     }
 }
 
-void
-receive_exit_message(struct context *c)
+void receive_exit_message(struct context *c)
 {
     dmsg(D_STREAM_ERRORS, "CC-EEN exit message received by peer");
     /* With control channel exit notification, we want to give the session
@@ -223,10 +218,8 @@ receive_exit_message(struct context *c)
 #endif
 }
 
-
-void
-server_pushed_info(struct context *c, const struct buffer *buffer,
-                   const int adv)
+void server_pushed_info(struct context *c, const struct buffer *buffer,
+                        const int adv)
 {
     const char *m = "";
     struct buffer buf = *buffer;
@@ -258,12 +251,11 @@ server_pushed_info(struct context *c, const struct buffer *buffer,
 
         gc_free(&gc);
     }
-    #endif
+#endif
     msg(D_PUSH, "Info command was pushed by server ('%s')", m);
 }
 
-void
-receive_cr_response(struct context *c, const struct buffer *buffer)
+void receive_cr_response(struct context *c, const struct buffer *buffer)
 {
     struct buffer buf = *buffer;
     const char *m = "";
@@ -301,8 +293,7 @@ parse_auth_pending_keywords(const struct buffer *buffer,
     struct buffer buf = *buffer;
 
     /* does the buffer start with "AUTH_PENDING," ? */
-    if (!buf_advance(&buf, strlen("AUTH_PENDING"))
-        || !(buf_read_u8(&buf) == ',') || !BLEN(&buf))
+    if (!buf_advance(&buf, strlen("AUTH_PENDING")) || !(buf_read_u8(&buf) == ',') || !BLEN(&buf))
     {
 #ifdef ENABLE_MANAGEMENT
         if (management)
@@ -337,8 +328,7 @@ parse_auth_pending_keywords(const struct buffer *buffer,
     }
 }
 
-void
-receive_auth_pending(struct context *c, const struct buffer *buffer)
+void receive_auth_pending(struct context *c, const struct buffer *buffer)
 {
     if (!c->options.pull)
     {
@@ -347,7 +337,7 @@ receive_auth_pending(struct context *c, const struct buffer *buffer)
 
     /* Cap the increase at the maximum time we are willing stay in the
      * pending authentication state */
-    unsigned int max_timeout = max_uint(c->options.renegotiate_seconds/2,
+    unsigned int max_timeout = max_uint(c->options.renegotiate_seconds / 2,
                                         c->options.handshake_window);
 
     /* try to parse parameter keywords, default to hand-winow timeout if the
@@ -356,7 +346,8 @@ receive_auth_pending(struct context *c, const struct buffer *buffer)
     parse_auth_pending_keywords(buffer, &server_timeout);
 
     msg(D_PUSH, "AUTH_PENDING received, extending handshake timeout from %us "
-        "to %us", c->options.handshake_window,
+                "to %us",
+        c->options.handshake_window,
         min_uint(max_timeout, server_timeout));
 
     const struct key_state *ks = get_primary_key(c->c2.tls_multi);
@@ -381,20 +372,19 @@ static bool push_option_fmt(struct gc_arena *gc, struct push_list *push_list,
                             int msglevel, const char *fmt, ...)
 #ifdef __GNUC__
 #if __USE_MINGW_ANSI_STDIO
-__attribute__ ((format(gnu_printf, 4, 5)))
+    __attribute__((format(gnu_printf, 4, 5)))
 #else
-__attribute__ ((format(__printf__, 4, 5)))
+    __attribute__((format(__printf__, 4, 5)))
 #endif
 #endif
-;
+    ;
 
 /*
  * Send auth failed message from server to client.
  *
  * Does nothing if an exit is already scheduled
  */
-void
-send_auth_failed(struct context *c, const char *client_reason)
+void send_auth_failed(struct context *c, const char *client_reason)
 {
     if (!schedule_exit(c))
     {
@@ -406,7 +396,7 @@ send_auth_failed(struct context *c, const char *client_reason)
     static const char auth_failed[] = "AUTH_FAILED";
     size_t len;
 
-    len = (client_reason ? strlen(client_reason)+1 : 0) + sizeof(auth_failed);
+    len = (client_reason ? strlen(client_reason) + 1 : 0) + sizeof(auth_failed);
     if (len > PUSH_BUNDLE_SIZE)
     {
         len = PUSH_BUNDLE_SIZE;
@@ -428,17 +418,14 @@ send_auth_failed(struct context *c, const char *client_reason)
                                            BSTR(&buf), D_PUSH);
 
         reschedule_multi_process(c);
-
     }
 
     gc_free(&gc);
 }
 
-
-bool
-send_auth_pending_messages(struct tls_multi *tls_multi,
-                           struct tls_session *session,
-                           const char *extra, unsigned int timeout)
+bool send_auth_pending_messages(struct tls_multi *tls_multi,
+                                struct tls_session *session,
+                                const char *extra, unsigned int timeout)
 {
     struct key_state *ks = &session->key[KS_PRIMARY];
 
@@ -447,9 +434,8 @@ send_auth_pending_messages(struct tls_multi *tls_multi,
     const char *const peer_info = tls_multi->peer_info;
     unsigned int proto = extract_iv_proto(peer_info);
 
-
     /* Calculate the maximum timeout and subtract the time we already waited */
-    unsigned int max_timeout = max_uint(tls_multi->opt.renegotiate_seconds/2,
+    unsigned int max_timeout = max_uint(tls_multi->opt.renegotiate_seconds / 2,
                                         tls_multi->opt.handshake_window);
     max_timeout = max_timeout - (now - ks->initial);
     timeout = min_uint(max_timeout, timeout);
@@ -492,8 +478,7 @@ send_auth_pending_messages(struct tls_multi *tls_multi,
 /*
  * Send restart message from server to client.
  */
-void
-send_restart(struct context *c, const char *kill_msg)
+void send_restart(struct context *c, const char *kill_msg)
 {
     schedule_exit(c);
     send_control_channel_string(c, kill_msg ? kill_msg : "RESTART", D_PUSH);
@@ -503,8 +488,7 @@ send_restart(struct context *c, const char *kill_msg)
  * Push/Pull
  */
 
-void
-incoming_push_message(struct context *c, const struct buffer *buffer)
+void incoming_push_message(struct context *c, const struct buffer *buffer)
 {
     struct gc_arena gc = gc_new();
     unsigned int option_types_found = 0;
@@ -548,8 +532,7 @@ cleanup:
     gc_free(&gc);
 }
 
-bool
-send_push_request(struct context *c)
+bool send_push_request(struct context *c)
 {
     const struct key_state *ks = get_primary_key(c->c2.tls_multi);
 
@@ -562,8 +545,10 @@ send_push_request(struct context *c)
      * the server by a P_ACK_V1 packet that reset the keepalive timer
      */
 
-    if (c->c2.push_request_timeout > now
-        && (now - ks->peer_last_packet) < c->options.handshake_window)
+    /*when condition 1 false -> process restarts -> means go to else*/
+    // msg(M_INFO, "Condition 1: %s", c->c2.push_request_timeout > now ? "true" : "false");
+
+    if (c->c2.push_request_timeout > now && (now - ks->peer_last_packet) < c->options.handshake_window)
     {
         return send_control_channel_string(c, "PUSH_REQUEST", D_PUSH);
     }
@@ -585,9 +570,8 @@ send_push_request(struct context *c)
  *
  * @return true on success, false on failure.
  */
-void
-prepare_auth_token_push_reply(struct tls_multi *tls_multi, struct gc_arena *gc,
-                              struct push_list *push_list)
+void prepare_auth_token_push_reply(struct tls_multi *tls_multi, struct gc_arena *gc,
+                                   struct push_list *push_list)
 {
     /*
      * If server uses --auth-gen-token and we have an auth token
@@ -610,9 +594,8 @@ prepare_auth_token_push_reply(struct tls_multi *tls_multi, struct gc_arena *gc,
  *
  * @return true on success, false on failure.
  */
-bool
-prepare_push_reply(struct context *c, struct gc_arena *gc,
-                   struct push_list *push_list)
+bool prepare_push_reply(struct context *c, struct gc_arena *gc,
+                        struct push_list *push_list)
 {
     struct tls_multi *tls_multi = c->c2.tls_multi;
     struct options *o = &c->options;
@@ -628,9 +611,7 @@ prepare_push_reply(struct context *c, struct gc_arena *gc,
     }
 
     /* ipv4 */
-    if (c->c2.push_ifconfig_defined && c->c2.push_ifconfig_local
-        && c->c2.push_ifconfig_remote_netmask
-        && !o->push_ifconfig_ipv4_blocked)
+    if (c->c2.push_ifconfig_defined && c->c2.push_ifconfig_local && c->c2.push_ifconfig_remote_netmask && !o->push_ifconfig_ipv4_blocked)
     {
         in_addr_t ifconfig_local = c->c2.push_ifconfig_local;
         if (c->c2.push_ifconfig_local_alias)
@@ -709,8 +690,9 @@ prepare_push_reply(struct context *c, struct gc_arena *gc,
         if (client_max_mtu < o->ce.tun_mtu)
         {
             msg(M_WARN, "Warning: reported maximum MTU from client (%d) is lower "
-                "than MTU used on the server (%d). Add tun-max-mtu %d "
-                "to client configuration.", client_max_mtu,
+                        "than MTU used on the server (%d). Add tun-max-mtu %d "
+                        "to client configuration.",
+                client_max_mtu,
                 o->ce.tun_mtu, o->ce.tun_mtu);
         }
     }
@@ -757,11 +739,10 @@ send_push_options(struct context *c, struct buffer *buf,
     return true;
 }
 
-void
-send_push_reply_auth_token(struct tls_multi *multi)
+void send_push_reply_auth_token(struct tls_multi *multi)
 {
     struct gc_arena gc = gc_new();
-    struct push_list push_list = { 0 };
+    struct push_list push_list = {0};
     struct tls_session *session = &multi->session[TM_ACTIVE];
 
     prepare_auth_token_push_reply(multi, &gc, &push_list);
@@ -777,8 +758,7 @@ send_push_reply_auth_token(struct tls_multi *multi)
     gc_free(&gc);
 }
 
-bool
-send_push_reply(struct context *c, struct push_list *per_client_push_list)
+bool send_push_reply(struct context *c, struct push_list *per_client_push_list)
 {
     struct gc_arena gc = gc_new();
     struct buffer buf = alloc_buf_gc(PUSH_BUNDLE_SIZE, &gc);
@@ -808,7 +788,7 @@ send_push_reply(struct context *c, struct push_list *per_client_push_list)
         buf_printf(&buf, ",push-continuation 1");
     }
 
-    if (BLEN(&buf) > sizeof(push_reply_cmd)-1)
+    if (BLEN(&buf) > sizeof(push_reply_cmd) - 1)
     {
         const bool status = send_control_channel_string(c, BSTR(&buf), D_PUSH);
         if (!status)
@@ -871,14 +851,12 @@ push_option_ex(struct gc_arena *gc, struct push_list *push_list,
     }
 }
 
-void
-push_option(struct options *o, const char *opt, int msglevel)
+void push_option(struct options *o, const char *opt, int msglevel)
 {
     push_option_ex(&o->gc, &o->push_list, opt, true, msglevel);
 }
 
-void
-clone_push_list(struct options *o)
+void clone_push_list(struct options *o)
 {
     if (o->push_list.head)
     {
@@ -893,8 +871,7 @@ clone_push_list(struct options *o)
     }
 }
 
-void
-push_options(struct options *o, char **p, int msglevel, struct gc_arena *gc)
+void push_options(struct options *o, char **p, int msglevel, struct gc_arena *gc)
 {
     const char **argv = make_extended_arg_array(p, false, gc);
     char *opt = print_argv(argv, gc, 0);
@@ -911,7 +888,7 @@ push_option_fmt(struct gc_arena *gc, struct push_list *push_list,
     va_start(arglist, format);
     len = vsnprintf(tmp, sizeof(tmp), format, arglist);
     va_end(arglist);
-    if (len > sizeof(tmp)-1)
+    if (len > sizeof(tmp) - 1)
     {
         return false;
     }
@@ -919,14 +896,12 @@ push_option_fmt(struct gc_arena *gc, struct push_list *push_list,
     return true;
 }
 
-void
-push_reset(struct options *o)
+void push_reset(struct options *o)
 {
     CLEAR(o->push_list);
 }
 
-void
-push_remove_option(struct options *o, const char *p)
+void push_remove_option(struct options *o, const char *p)
 {
     msg(D_PUSH_DEBUG, "PUSH_REMOVE searching for: '%s'", p);
 
@@ -938,7 +913,7 @@ push_remove_option(struct options *o, const char *p)
     }
 
     /* ifconfig-ipv6 is special, as not part of the push list */
-    if (streq( p, "ifconfig-ipv6" ))
+    if (streq(p, "ifconfig-ipv6"))
     {
         o->push_ifconfig_ipv6_blocked = true;
         return;
@@ -951,8 +926,7 @@ push_remove_option(struct options *o, const char *p)
         /* cycle through the push list */
         while (e)
         {
-            if (e->enable
-                && strncmp( e->option, p, strlen(p) ) == 0)
+            if (e->enable && strncmp(e->option, p, strlen(p)) == 0)
             {
                 msg(D_PUSH_DEBUG, "PUSH_REMOVE removing: '%s'", e->option);
                 e->enable = false;
@@ -963,21 +937,17 @@ push_remove_option(struct options *o, const char *p)
     }
 }
 
-int
-process_incoming_push_request(struct context *c)
+int process_incoming_push_request(struct context *c)
 {
     int ret = PUSH_MSG_ERROR;
 
-
-    if (tls_authentication_status(c->c2.tls_multi) == TLS_AUTHENTICATION_FAILED
-        || c->c2.tls_multi->multi_state == CAS_FAILED)
+    if (tls_authentication_status(c->c2.tls_multi) == TLS_AUTHENTICATION_FAILED || c->c2.tls_multi->multi_state == CAS_FAILED)
     {
         const char *client_reason = tls_client_reason(c->c2.tls_multi);
         send_auth_failed(c, client_reason);
         ret = PUSH_MSG_AUTH_FAILURE;
     }
-    else if (tls_authentication_status(c->c2.tls_multi) == TLS_AUTHENTICATION_SUCCEEDED
-             && c->c2.tls_multi->multi_state >= CAS_CONNECT_DONE)
+    else if (tls_authentication_status(c->c2.tls_multi) == TLS_AUTHENTICATION_SUCCEEDED && c->c2.tls_multi->multi_state >= CAS_CONNECT_DONE)
     {
         time_t now;
 
@@ -989,11 +959,10 @@ process_incoming_push_request(struct context *c)
         else
         {
             /* per-client push options - peer-id, cipher, ifconfig, ipv6-ifconfig */
-            struct push_list push_list = { 0 };
+            struct push_list push_list = {0};
             struct gc_arena gc = gc_new();
 
-            if (prepare_push_reply(c, &gc, &push_list)
-                && send_push_reply(c, &push_list))
+            if (prepare_push_reply(c, &gc, &push_list) && send_push_reply(c, &push_list))
             {
                 ret = PUSH_MSG_REQUEST;
                 c->c2.sent_push_reply_expiry = now + 30;
@@ -1016,9 +985,7 @@ push_update_digest(md_ctx_t *ctx, struct buffer *buf, const struct options *opt)
     while (buf_parse(buf, ',', line, sizeof(line)))
     {
         /* peer-id and auth-token might change on restart and this should not trigger reopening tun */
-        if (strprefix(line, "peer-id ")
-            || strprefix(line, "auth-token ")
-            || strprefix(line, "auth-token-user "))
+        if (strprefix(line, "peer-id ") || strprefix(line, "auth-token ") || strprefix(line, "auth-token-user "))
         {
             continue;
         }
@@ -1027,7 +994,7 @@ push_update_digest(md_ctx_t *ctx, struct buffer *buf, const struct options *opt)
         {
             continue;
         }
-        md_ctx_update(ctx, (const uint8_t *) line, strlen(line)+1);
+        md_ctx_update(ctx, (const uint8_t *)line, strlen(line) + 1);
     }
 }
 
@@ -1058,20 +1025,20 @@ process_incoming_push_reply(struct context *c,
                                &c->options);
             switch (c->options.push_continuation)
             {
-                case 0:
-                case 1:
-                    md_ctx_final(c->c2.pulled_options_state,
-                                 c->c2.pulled_options_digest.digest);
-                    md_ctx_cleanup(c->c2.pulled_options_state);
-                    md_ctx_free(c->c2.pulled_options_state);
-                    c->c2.pulled_options_state = NULL;
-                    c->c2.pulled_options_digest_init_done = false;
-                    ret = PUSH_MSG_REPLY;
-                    break;
+            case 0:
+            case 1:
+                md_ctx_final(c->c2.pulled_options_state,
+                             c->c2.pulled_options_digest.digest);
+                md_ctx_cleanup(c->c2.pulled_options_state);
+                md_ctx_free(c->c2.pulled_options_state);
+                c->c2.pulled_options_state = NULL;
+                c->c2.pulled_options_digest_init_done = false;
+                ret = PUSH_MSG_REPLY;
+                break;
 
-                case 2:
-                    ret = PUSH_MSG_CONTINUATION;
-                    break;
+            case 2:
+                ret = PUSH_MSG_CONTINUATION;
+                break;
             }
         }
     }
@@ -1083,12 +1050,11 @@ process_incoming_push_reply(struct context *c,
     return ret;
 }
 
-int
-process_incoming_push_msg(struct context *c,
-                          const struct buffer *buffer,
-                          bool honor_received_options,
-                          unsigned int permission_mask,
-                          unsigned int *option_types_found)
+int process_incoming_push_msg(struct context *c,
+                              const struct buffer *buffer,
+                              bool honor_received_options,
+                              unsigned int permission_mask,
+                              unsigned int *option_types_found)
 {
     struct buffer buf = *buffer;
 
@@ -1097,8 +1063,7 @@ process_incoming_push_msg(struct context *c,
         c->c2.push_request_received = true;
         return process_incoming_push_request(c);
     }
-    else if (honor_received_options
-             && buf_string_compare_advance(&buf, push_reply_cmd))
+    else if (honor_received_options && buf_string_compare_advance(&buf, push_reply_cmd))
     {
         return process_incoming_push_reply(c, permission_mask,
                                            option_types_found, &buf);
@@ -1109,12 +1074,10 @@ process_incoming_push_msg(struct context *c,
     }
 }
 
-
 /*
  * Remove iroutes from the push_list.
  */
-void
-remove_iroutes_from_push_route_list(struct options *o)
+void remove_iroutes_from_push_route_list(struct options *o)
 {
     if (o && o->push_list.head && (o->iroutes || o->iroutes_ipv6))
     {
@@ -1124,13 +1087,12 @@ remove_iroutes_from_push_route_list(struct options *o)
         /* cycle through the push list */
         while (e)
         {
-            char *p[MAX_PARMS+1];
+            char *p[MAX_PARMS + 1];
             bool enable = true;
 
             /* parse the push item */
             CLEAR(p);
-            if (e->enable
-                && parse_line(e->option, p, SIZE(p)-1, "[PUSH_ROUTE_REMOVE]", 1, D_ROUTE_DEBUG, &gc))
+            if (e->enable && parse_line(e->option, p, SIZE(p) - 1, "[PUSH_ROUTE_REMOVE]", 1, D_ROUTE_DEBUG, &gc))
             {
                 /* is the push item a route directive? */
                 if (p[0] && !strcmp(p[0], "route") && !p[3] && o->iroutes)
@@ -1156,8 +1118,7 @@ remove_iroutes_from_push_route_list(struct options *o)
                         }
                     }
                 }
-                else if (p[0] && !strcmp(p[0], "route-ipv6") && !p[2]
-                         && o->iroutes_ipv6)
+                else if (p[0] && !strcmp(p[0], "route-ipv6") && !p[2] && o->iroutes_ipv6)
                 {
                     /* get route parameters */
                     struct in6_addr network;
@@ -1171,8 +1132,7 @@ remove_iroutes_from_push_route_list(struct options *o)
                         /* does this route-ipv6 match an iroute-ipv6? */
                         for (ir = o->iroutes_ipv6; ir != NULL; ir = ir->next)
                         {
-                            if (!memcmp(&network, &ir->network, sizeof(network))
-                                && netbits == ir->netbits)
+                            if (!memcmp(&network, &ir->network, sizeof(network)) && netbits == ir->netbits)
                             {
                                 enable = false;
                                 break;
