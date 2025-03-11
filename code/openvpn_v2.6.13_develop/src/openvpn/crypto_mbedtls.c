@@ -55,18 +55,16 @@
 #include <mbedtls/entropy.h>
 #include <mbedtls/ssl.h>
 
-
 /*
  *
  * Hardware engine support. Allows loading/unloading of engines.
  *
  */
 
-void
-crypto_init_lib_engine(const char *engine_name)
+void crypto_init_lib_engine(const char *engine_name)
 {
     msg(M_WARN, "Note: mbed TLS hardware crypto engine functionality is not "
-        "available");
+                "available");
 }
 
 provider_t *
@@ -79,8 +77,7 @@ crypto_load_provider(const char *provider)
     return NULL;
 }
 
-void
-crypto_unload_provider(const char *provname, provider_t *provider)
+void crypto_unload_provider(const char *provname, provider_t *provider)
 {
 }
 
@@ -90,23 +87,19 @@ crypto_unload_provider(const char *provname, provider_t *provider)
  *
  */
 
-void
-crypto_init_lib(void)
+void crypto_init_lib(void)
 {
 }
 
-void
-crypto_uninit_lib(void)
+void crypto_uninit_lib(void)
 {
 }
 
-void
-crypto_clear_error(void)
+void crypto_clear_error(void)
 {
 }
 
-bool
-mbed_log_err(unsigned int flags, int errval, const char *prefix)
+bool mbed_log_err(unsigned int flags, int errval, const char *prefix)
 {
     if (0 != errval)
     {
@@ -123,9 +116,8 @@ mbed_log_err(unsigned int flags, int errval, const char *prefix)
     return 0 == errval;
 }
 
-bool
-mbed_log_func_line(unsigned int flags, int errval, const char *func,
-                   int line)
+bool mbed_log_func_line(unsigned int flags, int errval, const char *func,
+                        int line)
 {
     char prefix[256];
 
@@ -137,27 +129,23 @@ mbed_log_func_line(unsigned int flags, int errval, const char *func,
     return mbed_log_err(flags, errval, prefix);
 }
 
-
 #ifdef DMALLOC
-void
-crypto_init_dmalloc(void)
+void crypto_init_dmalloc(void)
 {
     msg(M_ERR, "Error: dmalloc support is not available for mbed TLS.");
 }
 #endif /* DMALLOC */
 
 const cipher_name_pair cipher_name_translation_table[] = {
-    { "BF-CBC", "BLOWFISH-CBC" },
-    { "BF-CFB", "BLOWFISH-CFB64" },
-    { "CAMELLIA-128-CFB", "CAMELLIA-128-CFB128" },
-    { "CAMELLIA-192-CFB", "CAMELLIA-192-CFB128" },
-    { "CAMELLIA-256-CFB", "CAMELLIA-256-CFB128" }
-};
+    {"BF-CBC", "BLOWFISH-CBC"},
+    {"BF-CFB", "BLOWFISH-CFB64"},
+    {"CAMELLIA-128-CFB", "CAMELLIA-128-CFB128"},
+    {"CAMELLIA-192-CFB", "CAMELLIA-192-CFB128"},
+    {"CAMELLIA-256-CFB", "CAMELLIA-256-CFB128"}};
 const size_t cipher_name_translation_table_count =
     sizeof(cipher_name_translation_table) / sizeof(*cipher_name_translation_table);
 
-void
-show_available_ciphers(void)
+void show_available_ciphers(void)
 {
     const int *ciphers = mbedtls_cipher_list();
 
@@ -173,8 +161,7 @@ show_available_ciphers(void)
     {
         const mbedtls_cipher_info_t *info = mbedtls_cipher_info_from_type(*ciphers);
         const char *name = mbedtls_cipher_info_get_name(info);
-        if (info && name && !cipher_kt_insecure(name)
-            && (cipher_kt_mode_aead(name) || cipher_kt_mode_cbc(name)))
+        if (info && name && !cipher_kt_insecure(name) && (cipher_kt_mode_aead(name) || cipher_kt_mode_cbc(name)))
         {
             print_cipher(name);
         }
@@ -188,8 +175,7 @@ show_available_ciphers(void)
     {
         const mbedtls_cipher_info_t *info = mbedtls_cipher_info_from_type(*ciphers);
         const char *name = mbedtls_cipher_info_get_name(info);
-        if (info && name && cipher_kt_insecure(name)
-            && (cipher_kt_mode_aead(name) || cipher_kt_mode_cbc(name)))
+        if (info && name && cipher_kt_insecure(name) && (cipher_kt_mode_aead(name) || cipher_kt_mode_cbc(name)))
         {
             print_cipher(name);
         }
@@ -198,14 +184,12 @@ show_available_ciphers(void)
     printf("\n");
 }
 
-void
-show_available_digests(void)
+void show_available_digests(void)
 {
     const int *digests = mbedtls_md_list();
 
 #ifndef ENABLE_SMALL
-    printf("The following message digests are available for use with\n"
-           PACKAGE_NAME ".  A message digest is used in conjunction with\n"
+    printf("The following message digests are available for use with\n" PACKAGE_NAME ".  A message digest is used in conjunction with\n"
            "the HMAC function, to authenticate received packets.\n"
            "You can specify a message digest as parameter to\n"
            "the --auth option.\n\n");
@@ -225,20 +209,18 @@ show_available_digests(void)
     printf("\n");
 }
 
-void
-show_available_engines(void)
+void show_available_engines(void)
 {
     printf("Sorry, mbed TLS hardware crypto engine functionality is not "
            "available\n");
 }
 
-bool
-crypto_pem_encode(const char *name, struct buffer *dst,
-                  const struct buffer *src, struct gc_arena *gc)
+bool crypto_pem_encode(const char *name, struct buffer *dst,
+                       const struct buffer *src, struct gc_arena *gc)
 {
     /* 1000 chars is the PEM line length limit (+1 for tailing NUL) */
-    char header[1000+1] = { 0 };
-    char footer[1000+1] = { 0 };
+    char header[1000 + 1] = {0};
+    char footer[1000 + 1] = {0};
 
     if (!snprintf(header, sizeof(header), "-----BEGIN %s-----\n", name))
     {
@@ -261,8 +243,8 @@ crypto_pem_encode(const char *name, struct buffer *dst,
      * mbedtls_pem_write_buffer in its length calculation */
     *dst = alloc_buf_gc(out_len, gc);
     if (!mbed_ok(mbedtls_pem_write_buffer(header, footer, BPTR(src), BLEN(src),
-                                          BPTR(dst), BCAP(dst), &out_len))
-        || !buf_inc_len(dst, out_len-1))
+                                          BPTR(dst), BCAP(dst), &out_len)) ||
+        !buf_inc_len(dst, out_len - 1))
     {
         CLEAR(*dst);
         return false;
@@ -271,13 +253,12 @@ crypto_pem_encode(const char *name, struct buffer *dst,
     return true;
 }
 
-bool
-crypto_pem_decode(const char *name, struct buffer *dst,
-                  const struct buffer *src)
+bool crypto_pem_decode(const char *name, struct buffer *dst,
+                       const struct buffer *src)
 {
     /* 1000 chars is the PEM line length limit (+1 for tailing NUL) */
-    char header[1000+1] = { 0 };
-    char footer[1000+1] = { 0 };
+    char header[1000 + 1] = {0};
+    char footer[1000 + 1] = {0};
 
     if (!snprintf(header, sizeof(header), "-----BEGIN %s-----", name))
     {
@@ -296,7 +277,7 @@ crypto_pem_decode(const char *name, struct buffer *dst,
     buf_null_terminate(&input);
 
     size_t use_len = 0;
-    mbedtls_pem_context ctx = { 0 };
+    mbedtls_pem_context ctx = {0};
     bool ret = mbed_ok(mbedtls_pem_read_buffer(&ctx, header, footer, BPTR(&input),
                                                NULL, 0, &use_len));
     size_t buf_size = 0;
@@ -362,8 +343,7 @@ rand_ctx_get(void)
 }
 
 #ifdef ENABLE_PREDICTION_RESISTANCE
-void
-rand_ctx_enable_prediction_resistance(void)
+void rand_ctx_enable_prediction_resistance(void)
 {
     mbedtls_ctr_drbg_context *cd_ctx = rand_ctx_get();
 
@@ -371,8 +351,7 @@ rand_ctx_enable_prediction_resistance(void)
 }
 #endif /* ENABLE_PREDICTION_RESISTANCE */
 
-int
-rand_bytes(uint8_t *output, int len)
+int rand_bytes(uint8_t *output, int len)
 {
     mbedtls_ctr_drbg_context *rng_ctx = rand_ctx_get();
 
@@ -408,8 +387,7 @@ cipher_get(const char *ciphername)
     return cipher;
 }
 
-bool
-cipher_valid_reason(const char *ciphername, const char **reason)
+bool cipher_valid_reason(const char *ciphername, const char **reason)
 {
     ASSERT(reason);
 
@@ -422,12 +400,13 @@ cipher_valid_reason(const char *ciphername, const char **reason)
         return false;
     }
 
-    const size_t key_bytelen = mbedtls_cipher_info_get_key_bitlen(cipher)/8;
+    const size_t key_bytelen = mbedtls_cipher_info_get_key_bitlen(cipher) / 8;
     if (key_bytelen > MAX_CIPHER_KEY_LENGTH)
     {
         msg(D_LOW, "Cipher algorithm '%s' uses a default key size (%zu bytes) "
-            "which is larger than " PACKAGE_NAME "'s current maximum key size "
-            "(%d bytes)", ciphername, key_bytelen, MAX_CIPHER_KEY_LENGTH);
+                   "which is larger than " PACKAGE_NAME "'s current maximum key size "
+                   "(%d bytes)",
+            ciphername, key_bytelen, MAX_CIPHER_KEY_LENGTH);
         *reason = "disabled due to key size too large";
         return false;
     }
@@ -448,8 +427,7 @@ cipher_kt_name(const char *ciphername)
     return translate_cipher_name_to_openvpn(mbedtls_cipher_info_get_name(cipher_kt));
 }
 
-int
-cipher_kt_key_size(const char *ciphername)
+int cipher_kt_key_size(const char *ciphername)
 {
     const mbedtls_cipher_info_t *cipher_kt = cipher_get(ciphername);
 
@@ -458,11 +436,10 @@ cipher_kt_key_size(const char *ciphername)
         return 0;
     }
 
-    return (int)mbedtls_cipher_info_get_key_bitlen(cipher_kt)/8;
+    return (int)mbedtls_cipher_info_get_key_bitlen(cipher_kt) / 8;
 }
 
-int
-cipher_kt_iv_size(const char *ciphername)
+int cipher_kt_iv_size(const char *ciphername)
 {
     const mbedtls_cipher_info_t *cipher_kt = cipher_get(ciphername);
 
@@ -473,8 +450,7 @@ cipher_kt_iv_size(const char *ciphername)
     return (int)mbedtls_cipher_info_get_iv_size(cipher_kt);
 }
 
-int
-cipher_kt_block_size(const char *ciphername)
+int cipher_kt_block_size(const char *ciphername)
 {
     const mbedtls_cipher_info_t *cipher_kt = cipher_get(ciphername);
     if (NULL == cipher_kt)
@@ -484,8 +460,7 @@ cipher_kt_block_size(const char *ciphername)
     return (int)mbedtls_cipher_info_get_block_size(cipher_kt);
 }
 
-int
-cipher_kt_tag_size(const char *ciphername)
+int cipher_kt_tag_size(const char *ciphername)
 {
     if (cipher_kt_mode_aead(ciphername))
     {
@@ -494,8 +469,7 @@ cipher_kt_tag_size(const char *ciphername)
     return 0;
 }
 
-bool
-cipher_kt_insecure(const char *ciphername)
+bool cipher_kt_insecure(const char *ciphername)
 {
     const mbedtls_cipher_info_t *cipher_kt = cipher_get(ciphername);
     if (!cipher_kt)
@@ -507,7 +481,7 @@ cipher_kt_insecure(const char *ciphername)
 #ifdef MBEDTLS_CHACHAPOLY_C
              || mbedtls_cipher_info_get_type(cipher_kt) == MBEDTLS_CIPHER_CHACHA20_POLY1305
 #endif
-             );
+    );
 }
 
 static mbedtls_cipher_mode_t
@@ -517,32 +491,27 @@ cipher_kt_mode(const mbedtls_cipher_info_t *cipher_kt)
     return mbedtls_cipher_info_get_mode(cipher_kt);
 }
 
-bool
-cipher_kt_mode_cbc(const char *ciphername)
+bool cipher_kt_mode_cbc(const char *ciphername)
 {
     const mbedtls_cipher_info_t *cipher = cipher_get(ciphername);
     return cipher && cipher_kt_mode(cipher) == OPENVPN_MODE_CBC;
 }
 
-bool
-cipher_kt_mode_ofb_cfb(const char *ciphername)
+bool cipher_kt_mode_ofb_cfb(const char *ciphername)
 {
     const mbedtls_cipher_info_t *cipher = cipher_get(ciphername);
-    return cipher && (cipher_kt_mode(cipher) == OPENVPN_MODE_OFB
-                      || cipher_kt_mode(cipher) == OPENVPN_MODE_CFB);
+    return cipher && (cipher_kt_mode(cipher) == OPENVPN_MODE_OFB || cipher_kt_mode(cipher) == OPENVPN_MODE_CFB);
 }
 
-bool
-cipher_kt_mode_aead(const char *ciphername)
+bool cipher_kt_mode_aead(const char *ciphername)
 {
     const mbedtls_cipher_info_t *cipher = cipher_get(ciphername);
     return cipher && (cipher_kt_mode(cipher) == OPENVPN_MODE_GCM
 #ifdef MBEDTLS_CHACHAPOLY_C
                       || cipher_kt_mode(cipher) == MBEDTLS_MODE_CHACHAPOLY
 #endif
-                      );
+                     );
 }
-
 
 /*
  *
@@ -558,16 +527,14 @@ cipher_ctx_new(void)
     return ctx;
 }
 
-void
-cipher_ctx_free(mbedtls_cipher_context_t *ctx)
+void cipher_ctx_free(mbedtls_cipher_context_t *ctx)
 {
     mbedtls_cipher_free(ctx);
     free(ctx);
 }
 
-void
-cipher_ctx_init(mbedtls_cipher_context_t *ctx, const uint8_t *key,
-                const char *ciphername, crypto_operation_t enc)
+void cipher_ctx_init(mbedtls_cipher_context_t *ctx, const uint8_t *key,
+                     const char *ciphername, crypto_operation_t enc)
 {
     ASSERT(NULL != ciphername && NULL != ctx);
     CLEAR(*ctx);
@@ -598,21 +565,19 @@ cipher_ctx_init(mbedtls_cipher_context_t *ctx, const uint8_t *key,
     ASSERT(mbedtls_cipher_get_key_bitlen(ctx) <= key_bitlen);
 }
 
-int
-cipher_ctx_iv_length(const mbedtls_cipher_context_t *ctx)
+int cipher_ctx_iv_length(const mbedtls_cipher_context_t *ctx)
 {
     return mbedtls_cipher_get_iv_size(ctx);
 }
 
-int
-cipher_ctx_get_tag(cipher_ctx_t *ctx, uint8_t *tag, int tag_len)
+int cipher_ctx_get_tag(cipher_ctx_t *ctx, uint8_t *tag, int tag_len)
 {
     if (tag_len > SIZE_MAX)
     {
         return 0;
     }
 
-    if (!mbed_ok(mbedtls_cipher_write_tag(ctx, (unsigned char *) tag, tag_len)))
+    if (!mbed_ok(mbedtls_cipher_write_tag(ctx, (unsigned char *)tag, tag_len)))
     {
         return 0;
     }
@@ -620,46 +585,38 @@ cipher_ctx_get_tag(cipher_ctx_t *ctx, uint8_t *tag, int tag_len)
     return 1;
 }
 
-int
-cipher_ctx_block_size(const mbedtls_cipher_context_t *ctx)
+int cipher_ctx_block_size(const mbedtls_cipher_context_t *ctx)
 {
     return (int)mbedtls_cipher_get_block_size(ctx);
 }
 
-int
-cipher_ctx_mode(const mbedtls_cipher_context_t *ctx)
+int cipher_ctx_mode(const mbedtls_cipher_context_t *ctx)
 {
     ASSERT(NULL != ctx);
 
     return mbedtls_cipher_get_cipher_mode(ctx);
 }
 
-bool
-cipher_ctx_mode_cbc(const cipher_ctx_t *ctx)
+bool cipher_ctx_mode_cbc(const cipher_ctx_t *ctx)
 {
     return ctx && cipher_ctx_mode(ctx) == OPENVPN_MODE_CBC;
 }
 
-
-bool
-cipher_ctx_mode_ofb_cfb(const cipher_ctx_t *ctx)
+bool cipher_ctx_mode_ofb_cfb(const cipher_ctx_t *ctx)
 {
-    return ctx && (cipher_ctx_mode(ctx) == OPENVPN_MODE_OFB
-                   || cipher_ctx_mode(ctx) == OPENVPN_MODE_CFB);
+    return ctx && (cipher_ctx_mode(ctx) == OPENVPN_MODE_OFB || cipher_ctx_mode(ctx) == OPENVPN_MODE_CFB);
 }
 
-bool
-cipher_ctx_mode_aead(const cipher_ctx_t *ctx)
+bool cipher_ctx_mode_aead(const cipher_ctx_t *ctx)
 {
     return ctx && (cipher_ctx_mode(ctx) == OPENVPN_MODE_GCM
 #ifdef MBEDTLS_CHACHAPOLY_C
                    || cipher_ctx_mode(ctx) == MBEDTLS_MODE_CHACHAPOLY
 #endif
-                   );
+                  );
 }
 
-int
-cipher_ctx_reset(mbedtls_cipher_context_t *ctx, const uint8_t *iv_buf)
+int cipher_ctx_reset(mbedtls_cipher_context_t *ctx, const uint8_t *iv_buf)
 {
     if (!mbed_ok(mbedtls_cipher_reset(ctx)))
     {
@@ -674,8 +631,7 @@ cipher_ctx_reset(mbedtls_cipher_context_t *ctx, const uint8_t *iv_buf)
     return 1;
 }
 
-int
-cipher_ctx_update_ad(cipher_ctx_t *ctx, const uint8_t *src, int src_len)
+int cipher_ctx_update_ad(cipher_ctx_t *ctx, const uint8_t *src, int src_len)
 {
     if (src_len > SIZE_MAX)
     {
@@ -690,13 +646,12 @@ cipher_ctx_update_ad(cipher_ctx_t *ctx, const uint8_t *src, int src_len)
     return 1;
 }
 
-int
-cipher_ctx_update(mbedtls_cipher_context_t *ctx, uint8_t *dst,
-                  int *dst_len, uint8_t *src, int src_len)
+int cipher_ctx_update(mbedtls_cipher_context_t *ctx, uint8_t *dst,
+                      int *dst_len, uint8_t *src, int src_len)
 {
     size_t s_dst_len = *dst_len;
 
-    if (!mbed_ok(mbedtls_cipher_update(ctx, src, (size_t) src_len, dst,
+    if (!mbed_ok(mbedtls_cipher_update(ctx, src, (size_t)src_len, dst,
                                        &s_dst_len)))
     {
         return 0;
@@ -707,8 +662,7 @@ cipher_ctx_update(mbedtls_cipher_context_t *ctx, uint8_t *dst,
     return 1;
 }
 
-int
-cipher_ctx_final(mbedtls_cipher_context_t *ctx, uint8_t *dst, int *dst_len)
+int cipher_ctx_final(mbedtls_cipher_context_t *ctx, uint8_t *dst, int *dst_len)
 {
     size_t s_dst_len = *dst_len;
 
@@ -722,9 +676,8 @@ cipher_ctx_final(mbedtls_cipher_context_t *ctx, uint8_t *dst, int *dst_len)
     return 1;
 }
 
-int
-cipher_ctx_final_check_tag(mbedtls_cipher_context_t *ctx, uint8_t *dst,
-                           int *dst_len, uint8_t *tag, size_t tag_len)
+int cipher_ctx_final_check_tag(mbedtls_cipher_context_t *ctx, uint8_t *dst,
+                               int *dst_len, uint8_t *tag, size_t tag_len)
 {
     size_t olen = 0;
 
@@ -750,7 +703,7 @@ cipher_ctx_final_check_tag(mbedtls_cipher_context_t *ctx, uint8_t *dst,
     }
     *dst_len = olen;
 
-    if (!mbed_ok(mbedtls_cipher_check_tag(ctx, (const unsigned char *) tag,
+    if (!mbed_ok(mbedtls_cipher_check_tag(ctx, (const unsigned char *)tag,
                                           tag_len)))
     {
         return 0;
@@ -759,14 +712,11 @@ cipher_ctx_final_check_tag(mbedtls_cipher_context_t *ctx, uint8_t *dst,
     return 1;
 }
 
-
-
 /*
  *
  * Generic message digest information functions
  *
  */
-
 
 static const mbedtls_md_info_t *
 md_get(const char *digest)
@@ -789,10 +739,9 @@ md_get(const char *digest)
     return md;
 }
 
-bool
-md_valid(const char *digest)
+bool md_valid(const char *digest)
 {
-    const mbedtls_md_info_t *md  = mbedtls_md_info_from_string(digest);
+    const mbedtls_md_info_t *md = mbedtls_md_info_from_string(digest);
     return md != NULL;
 }
 
@@ -824,8 +773,7 @@ md_kt_size(const char *mdname)
  *
  */
 
-int
-md_full(const char *mdname, const uint8_t *src, int src_len, uint8_t *dst)
+int md_full(const char *mdname, const uint8_t *src, int src_len, uint8_t *dst)
 {
     const mbedtls_md_info_t *kt = md_get(mdname);
     return 0 == mbedtls_md(kt, src, src_len, dst);
@@ -839,14 +787,12 @@ md_ctx_new(void)
     return ctx;
 }
 
-void
-md_ctx_free(mbedtls_md_context_t *ctx)
+void md_ctx_free(mbedtls_md_context_t *ctx)
 {
     free(ctx);
 }
 
-void
-md_ctx_init(mbedtls_md_context_t *ctx, const char *mdname)
+void md_ctx_init(mbedtls_md_context_t *ctx, const char *mdname)
 {
     const mbedtls_md_info_t *kt = md_get(mdname);
     ASSERT(NULL != ctx && NULL != kt);
@@ -856,14 +802,12 @@ md_ctx_init(mbedtls_md_context_t *ctx, const char *mdname)
     ASSERT(0 == mbedtls_md_starts(ctx));
 }
 
-void
-md_ctx_cleanup(mbedtls_md_context_t *ctx)
+void md_ctx_cleanup(mbedtls_md_context_t *ctx)
 {
     mbedtls_md_free(ctx);
 }
 
-int
-md_ctx_size(const mbedtls_md_context_t *ctx)
+int md_ctx_size(const mbedtls_md_context_t *ctx)
 {
     if (NULL == ctx)
     {
@@ -872,26 +816,22 @@ md_ctx_size(const mbedtls_md_context_t *ctx)
     return (int)mbedtls_md_get_size(mbedtls_md_info_from_ctx(ctx));
 }
 
-void
-md_ctx_update(mbedtls_md_context_t *ctx, const uint8_t *src, int src_len)
+void md_ctx_update(mbedtls_md_context_t *ctx, const uint8_t *src, int src_len)
 {
     ASSERT(0 == mbedtls_md_update(ctx, src, src_len));
 }
 
-void
-md_ctx_final(mbedtls_md_context_t *ctx, uint8_t *dst)
+void md_ctx_final(mbedtls_md_context_t *ctx, uint8_t *dst)
 {
     ASSERT(0 == mbedtls_md_finish(ctx, dst));
     mbedtls_md_free(ctx);
 }
-
 
 /*
  *
  * Generic HMAC functions
  *
  */
-
 
 /*
  * TODO: re-enable dmsg for crypto debug
@@ -905,14 +845,12 @@ hmac_ctx_new(void)
     return ctx;
 }
 
-void
-hmac_ctx_free(mbedtls_md_context_t *ctx)
+void hmac_ctx_free(mbedtls_md_context_t *ctx)
 {
     free(ctx);
 }
 
-void
-hmac_ctx_init(mbedtls_md_context_t *ctx, const uint8_t *key, const char *mdname)
+void hmac_ctx_init(mbedtls_md_context_t *ctx, const uint8_t *key, const char *mdname)
 {
     const mbedtls_md_info_t *kt = md_get(mdname);
     ASSERT(NULL != kt && NULL != ctx);
@@ -926,14 +864,12 @@ hmac_ctx_init(mbedtls_md_context_t *ctx, const uint8_t *key, const char *mdname)
     ASSERT(mbedtls_md_get_size(kt) <= key_len);
 }
 
-void
-hmac_ctx_cleanup(mbedtls_md_context_t *ctx)
+void hmac_ctx_cleanup(mbedtls_md_context_t *ctx)
 {
     mbedtls_md_free(ctx);
 }
 
-int
-hmac_ctx_size(mbedtls_md_context_t *ctx)
+int hmac_ctx_size(mbedtls_md_context_t *ctx)
 {
     if (NULL == ctx)
     {
@@ -942,33 +878,29 @@ hmac_ctx_size(mbedtls_md_context_t *ctx)
     return mbedtls_md_get_size(mbedtls_md_info_from_ctx(ctx));
 }
 
-void
-hmac_ctx_reset(mbedtls_md_context_t *ctx)
+void hmac_ctx_reset(mbedtls_md_context_t *ctx)
 {
     ASSERT(0 == mbedtls_md_hmac_reset(ctx));
 }
 
-void
-hmac_ctx_update(mbedtls_md_context_t *ctx, const uint8_t *src, int src_len)
+void hmac_ctx_update(mbedtls_md_context_t *ctx, const uint8_t *src, int src_len)
 {
     ASSERT(0 == mbedtls_md_hmac_update(ctx, src, src_len));
 }
 
-void
-hmac_ctx_final(mbedtls_md_context_t *ctx, uint8_t *dst)
+void hmac_ctx_final(mbedtls_md_context_t *ctx, uint8_t *dst)
 {
     ASSERT(0 == mbedtls_md_hmac_finish(ctx, dst));
 }
 
-int
-memcmp_constant_time(const void *a, const void *b, size_t size)
+int memcmp_constant_time(const void *a, const void *b, size_t size)
 {
     /* mbed TLS has a no const time memcmp function that it exposes
      * via its APIs like OpenSSL does with CRYPTO_memcmp
      * Adapt the function that mbedtls itself uses in
      * mbedtls_safer_memcmp as it considers that to be safe */
-    volatile const unsigned char *A = (volatile const unsigned char *) a;
-    volatile const unsigned char *B = (volatile const unsigned char *) b;
+    volatile const unsigned char *A = (volatile const unsigned char *)a;
+    volatile const unsigned char *B = (volatile const unsigned char *)b;
     volatile unsigned char diff = 0;
 
     for (size_t i = 0; i < size; i++)
@@ -982,9 +914,8 @@ memcmp_constant_time(const void *a, const void *b, size_t size)
 /* mbedtls-2.18.0 or newer implements tls_prf, but prf_tls1 is removed
  * from recent versions, so we use our own implementation if necessary. */
 #if HAVE_MBEDTLS_SSL_TLS_PRF && defined(MBEDTLS_SSL_TLS_PRF_TLS1)
-bool
-ssl_tls1_PRF(const uint8_t *seed, int seed_len, const uint8_t *secret,
-             int secret_len, uint8_t *output, int output_len)
+bool ssl_tls1_PRF(const uint8_t *seed, int seed_len, const uint8_t *secret,
+                  int secret_len, uint8_t *output, int output_len)
 {
     return mbed_ok(mbedtls_ssl_tls_prf(MBEDTLS_SSL_TLS_PRF_TLS1, secret,
                                        secret_len, "", seed, seed_len, output,
@@ -1038,7 +969,7 @@ tls1_P_hash(const mbedtls_md_info_t *md_kt, const uint8_t *sec, int sec_len,
     hmac_ctx_update(ctx, seed, seed_len);
     hmac_ctx_final(ctx, A1);
 
-    for (;; )
+    for (;;)
     {
         hmac_ctx_reset(ctx);
         hmac_ctx_reset(ctx_tmp);
@@ -1053,7 +984,7 @@ tls1_P_hash(const mbedtls_md_info_t *md_kt, const uint8_t *sec, int sec_len,
             olen -= chunk;
             hmac_ctx_final(ctx_tmp, A1); /* calc the next A1 value */
         }
-        else    /* last one */
+        else /* last one */
         {
             hmac_ctx_final(ctx, A1);
             memcpy(out, A1, olen);
@@ -1089,9 +1020,8 @@ tls1_P_hash(const mbedtls_md_info_t *md_kt, const uint8_t *sec, int sec_len,
  * (1) key_block contains a full set of 4 keys.
  * (2) The pre-master secret is generated by the client.
  */
-bool
-ssl_tls1_PRF(const uint8_t *label, int label_len, const uint8_t *sec,
-             int slen, uint8_t *out1, int olen)
+bool ssl_tls1_PRF(const uint8_t *label, int label_len, const uint8_t *sec,
+                  int slen, uint8_t *out1, int olen)
 {
     struct gc_arena gc = gc_new();
     const md_kt_t *md5 = md_get("MD5");
@@ -1099,15 +1029,15 @@ ssl_tls1_PRF(const uint8_t *label, int label_len, const uint8_t *sec,
 
     uint8_t *out2 = (uint8_t *)gc_malloc(olen, false, &gc);
 
-    int len = slen/2;
+    int len = slen / 2;
     const uint8_t *S1 = sec;
     const uint8_t *S2 = &(sec[len]);
-    len += (slen&1); /* add for odd, make longer */
+    len += (slen & 1); /* add for odd, make longer */
 
     tls1_P_hash(md5, S1, len, label, label_len, out1, olen);
     tls1_P_hash(sha1, S2, len, label, label_len, out2, olen);
 
-    for (int i = 0; i<olen; i++)
+    for (int i = 0; i < olen; i++)
     {
         out1[i] ^= out2[i];
     }

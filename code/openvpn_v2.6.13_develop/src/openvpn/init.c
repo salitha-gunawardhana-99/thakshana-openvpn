@@ -2256,6 +2256,7 @@ tls_print_deferred_options_results(struct context *c)
 
     if (cipher_kt_mode_aead(o->ciphername))
     {
+        msg(M_INFO, "========== in tls_print_deferred_options_results %s", o->ciphername);
         buf_printf(&out, "Data Channel: cipher '%s'",
                    cipher_kt_name(o->ciphername));
     }
@@ -3269,8 +3270,6 @@ do_init_crypto_tls(struct context *c, const unsigned int flags)
     to.packet_timeout = options->tls_timeout;
     to.renegotiate_bytes = options->renegotiate_bytes;
     to.renegotiate_packets = options->renegotiate_packets;
-    msg(M_INFO, "========== Begining of do_init_crypto_tls %s", to.config_ciphername);
-    msg(M_INFO, "========== Begining of do_init_crypto_tls %s", to.config_ncp_ciphers);
     if (options->renegotiate_seconds_min < 0)
     {
         /* Add 10% jitter to reneg-sec by default (server side only) */
@@ -4573,7 +4572,6 @@ void init_instance(struct context *c, const struct env_set *env, const unsigned 
 
     /* init crypto layer */
     {
-        // msg(M_INFO, "%s", "in to init crypto layer");
         unsigned int crypto_flags = 0;
         if (c->mode == CM_TOP)
         {

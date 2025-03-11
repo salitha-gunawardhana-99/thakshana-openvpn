@@ -92,12 +92,6 @@ bool tls_peer_supports_ncp(const char *peer_info)
     }
 }
 
-static const char *custom_ciphers[] = {
-    "CUSTOM-CIPHER-1",
-    "CUSTOM-CIPHER-2",
-    "CUSTOM-CIPHER-3",
-    NULL};
-
 char *
 mutate_ncp_cipher_list(const char *list, struct gc_arena *gc)
 {
@@ -136,21 +130,12 @@ mutate_ncp_cipher_list(const char *list, struct gc_arena *gc)
                         "over the network! "
                         "PLEASE DO RECONSIDER THIS SETTING!");
         }
-        bool found_custom_cipher = false;
-        for (int i = 0; custom_ciphers[i] != NULL; i++)
-        {
-            if (strcmp(token, custom_ciphers[i]) == 0)
-            {
-                found_custom_cipher = true;
-                break;
-            }
-        }
-        if (!nonecipher && !cipher_valid(token) && !found_custom_cipher)
+        if (!nonecipher && !cipher_valid(token))
         {
             msg(M_WARN, "Unsupported %scipher in --data-ciphers: %s", optstr, token);
             error_found = error_found || !optional;
         }
-        else if (!nonecipher && !cipher_kt_mode_aead(token) && !cipher_kt_mode_cbc(token) && !cipher_kt_mode_ofb_cfb(token) && !found_custom_cipher)
+        else if (!nonecipher && !cipher_kt_mode_aead(token) && !cipher_kt_mode_cbc(token) && !cipher_kt_mode_ofb_cfb(token))
         {
             msg(M_WARN, "Unsupported %scipher algorithm '%s'. It does not use "
                         "CFB, OFB, CBC, or a supported AEAD mode",
@@ -159,16 +144,7 @@ mutate_ncp_cipher_list(const char *list, struct gc_arena *gc)
         }
         else
         {
-            const char *ovpn_cipher_name;
-            if (found_custom_cipher)
-            {
-                ovpn_cipher_name = token;
-            }
-            else
-            {
-                ovpn_cipher_name = cipher_kt_name(token);
-            }
-
+            const char *ovpn_cipher_name = cipher_kt_name(token);
             if (nonecipher)
             {
                 /* NULL resolves to [null-cipher] but we need none for
@@ -275,6 +251,8 @@ ncp_get_best_cipher(const char *server_list, const char *peer_info,
     struct gc_arena gc_tmp = gc_new();
 
     const char *peer_ncp_list = tls_peer_ncp_list(peer_info, &gc_tmp);
+    msg(M_INFO, "========== ncp_get_best_cipher Server List %s", server_list);
+    msg(M_INFO, "========== ncp_get_best_cipher Client List %s", peer_ncp_list);
 
     /* non-NCP clients without OCC?  "assume nothing" */
     /* For client doing the newer version of NCP (that send IV_CIPHERS)
@@ -302,6 +280,26 @@ ncp_get_best_cipher(const char *server_list, const char *peer_info,
     }
 
     gc_free(&gc_tmp);
+    msg(M_INFO, "========== ncp_get_best_cipher Selected Cipher %s", ret);
+    // if (ret != NULL)
+    // {
+    //     if (strcmp(ret, "AES-256-GCM") == 0)
+    //     {
+    //         ret = string_alloc("AES-128-GCM", gc);
+    //         /*add the mapped cipher if it is not included in options->ncp_ciphers_conf*/
+    //     }
+    //     else if (strcmp(ret, "AES-128-GCM") == 0)
+    //     {
+    //         ret = string_alloc("CHACHA20-POLY1305", gc);
+    //         /*add the mapped cipher if it is not included in options->ncp_ciphers_conf*/
+    //     }
+    //     else if (strcmp(ret, "CHACHA20-POLY1305") == 0)
+    //     {
+    //         ret = string_alloc("AES-256-GCM", gc);
+    //         /*add the mapped cipher if it is not included in options->ncp_ciphers_conf*/
+    //     }
+    // }
+    msg(M_INFO, "========== ncp_get_best_cipher Mapped Cipher %s", ret);
     return ret;
 }
 

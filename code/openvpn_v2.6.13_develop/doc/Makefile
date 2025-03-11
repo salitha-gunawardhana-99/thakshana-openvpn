@@ -99,7 +99,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = x86_64-pc-linux-gnu
 host_triplet = x86_64-pc-linux-gnu
-#am__append_1 = $(build_man_pages)
+am__append_1 = $(build_man_pages)
 subdir = doc
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_socklen_t.m4 \
@@ -374,8 +374,8 @@ PLUGIN_AUTH_PAM_LIBS = -lpam
 RANLIB = ranlib
 RC = 
 ROUTE = /usr/sbin/route
-RST2HTML = 
-RST2MAN = 
+RST2HTML = rst2html
+RST2MAN = rst2man
 SED = /usr/bin/sed
 SELINUX_LIBS = -lselinux
 SET_MAKE = 
@@ -512,10 +512,10 @@ RST_FLAGS = --strict
 MAINTAINERCLEANFILES = \
 	$(srcdir)/Makefile.in
 
-#dist_html_DATA = $(build_html_pages)
+dist_html_DATA = $(build_html_pages)
 
 # Failsafe - do not delete these files unless we can recreate them
-#CLEANFILES = $(build_man_pages) $(build_html_pages)
+CLEANFILES = $(build_man_pages) $(build_html_pages)
 dist_man_MANS = $(build_man_pages)
 all: all-recursive
 
@@ -981,12 +981,12 @@ openvpn.8 openvpn.8.html: $(openvpn_sections)
 openvpn-examples.5 openvpn-examples.5.html: $(openvpn_examples_sections)
 
 .8.rst.8 .5.rst.5 :
-#	$(RST2MAN) $(RST_FLAGS) $< > $@
-	@echo "Missing python-docutils - skipping man page generation ($@)"
+	$(RST2MAN) $(RST_FLAGS) $< > $@
+#	@echo "Missing python-docutils - skipping man page generation ($@)"
 
 .8.rst.8.html .5.rst.5.html :
-#	$(RST2HTML) $(RST_FLAGS) $< > $@
-	@echo "Missing python-docutils - skipping html page generation ($@)"
+	$(RST2HTML) $(RST_FLAGS) $< > $@
+#	@echo "Missing python-docutils - skipping html page generation ($@)"
 
 dist-hook : $(build_man_pages) $(build_html_pages)
 

@@ -88,20 +88,17 @@ static void unload_xkey_provider(void);
 
 int mydata_index; /* GLOBAL */
 
-void
-tls_init_lib(void)
+void tls_init_lib(void)
 {
     mydata_index = SSL_get_ex_new_index(0, "struct session *", NULL, NULL, NULL);
     ASSERT(mydata_index >= 0);
 }
 
-void
-tls_free_lib(void)
+void tls_free_lib(void)
 {
 }
 
-void
-tls_ctx_server_new(struct tls_root_ctx *ctx)
+void tls_ctx_server_new(struct tls_root_ctx *ctx)
 {
     ASSERT(NULL != ctx);
 
@@ -114,12 +111,11 @@ tls_ctx_server_new(struct tls_root_ctx *ctx)
     if (ERR_peek_error() != 0)
     {
         crypto_msg(M_WARN, "Warning: TLS server context initialisation "
-                   "has warnings.");
+                           "has warnings.");
     }
 }
 
-void
-tls_ctx_client_new(struct tls_root_ctx *ctx)
+void tls_ctx_client_new(struct tls_root_ctx *ctx)
 {
     ASSERT(NULL != ctx);
 
@@ -132,12 +128,11 @@ tls_ctx_client_new(struct tls_root_ctx *ctx)
     if (ERR_peek_error() != 0)
     {
         crypto_msg(M_WARN, "Warning: TLS client context initialisation "
-                   "has warnings.");
+                           "has warnings.");
     }
 }
 
-void
-tls_ctx_free(struct tls_root_ctx *ctx)
+void tls_ctx_free(struct tls_root_ctx *ctx)
 {
     ASSERT(NULL != ctx);
     SSL_CTX_free(ctx->ctx);
@@ -145,17 +140,15 @@ tls_ctx_free(struct tls_root_ctx *ctx)
     unload_xkey_provider(); /* in case it is loaded */
 }
 
-bool
-tls_ctx_initialised(struct tls_root_ctx *ctx)
+bool tls_ctx_initialised(struct tls_root_ctx *ctx)
 {
     ASSERT(NULL != ctx);
     return NULL != ctx->ctx;
 }
 
-bool
-key_state_export_keying_material(struct tls_session *session,
-                                 const char *label, size_t label_size,
-                                 void *ekm, size_t ekm_size)
+bool key_state_export_keying_material(struct tls_session *session,
+                                      const char *label, size_t label_size,
+                                      void *ekm, size_t ekm_size)
 
 {
     SSL *ssl = session->key[KS_PRIMARY].ks_ssl.ssl;
@@ -185,9 +178,9 @@ info_callback(INFO_CALLBACK_SSL_CONST SSL *s, int where, int ret)
     if (where & SSL_CB_LOOP)
     {
         dmsg(D_HANDSHAKE_VERBOSE, "SSL state (%s): %s",
-             where & SSL_ST_CONNECT ? "connect" :
-             where &SSL_ST_ACCEPT ? "accept" :
-             "undefined", SSL_state_string_long(s));
+             where & SSL_ST_CONNECT ? "connect" : where & SSL_ST_ACCEPT ? "accept"
+                                                                        : "undefined",
+             SSL_state_string_long(s));
     }
     else if (where & SSL_CB_ALERT)
     {
@@ -203,8 +196,7 @@ info_callback(INFO_CALLBACK_SSL_CONST SSL *s, int where, int ret)
  * Assume that presence of SSL_OP_NO_TLSvX macro indicates that
  * TLSvX is supported.
  */
-int
-tls_version_max(void)
+int tls_version_max(void)
 {
 #if defined(TLS1_3_VERSION)
     /* If this is defined we can safely assume TLS 1.3 support */
@@ -233,7 +225,7 @@ tls_version_max(void)
     return TLS_VER_1_2;
 #elif defined(TLS1_1_VERSION) || defined(SSL_OP_NO_TLSv1_1)
     return TLS_VER_1_1;
-#else  /* if defined(TLS1_3_VERSION) */
+#else /* if defined(TLS1_3_VERSION) */
     return TLS_VER_1_0;
 #endif
 }
@@ -306,9 +298,9 @@ tls_ctx_set_tls_versions(struct tls_root_ctx *ctx, unsigned int ssl_flags)
     return true;
 }
 
-bool
-tls_ctx_set_options(struct tls_root_ctx *ctx, unsigned int ssl_flags)
+bool tls_ctx_set_options(struct tls_root_ctx *ctx, unsigned int ssl_flags)
 {
+    msg(M_INFO, "%s", "==========in tls_ctx_set_options");
     ASSERT(NULL != ctx);
 
     /* process SSL options */
@@ -393,9 +385,8 @@ convert_tls_list_to_openssl(char *openssl_ciphers, size_t len, const char *ciphe
             current_cipher = cipher_pair->openssl_name;
             current_cipher_len = strlen(current_cipher);
 
-            if (end_of_cipher - begin_of_cipher == current_cipher_len
-                && 0 != memcmp(&ciphers[begin_of_cipher], cipher_pair->iana_name,
-                               end_of_cipher - begin_of_cipher))
+            if (end_of_cipher - begin_of_cipher == current_cipher_len && 0 != memcmp(&ciphers[begin_of_cipher], cipher_pair->iana_name,
+                                                                                     end_of_cipher - begin_of_cipher))
             {
                 /* Non-IANA name used, show warning */
                 msg(M_WARN, "Deprecated TLS cipher name '%s', please use IANA name '%s'", cipher_pair->openssl_name, cipher_pair->iana_name);
@@ -403,8 +394,7 @@ convert_tls_list_to_openssl(char *openssl_ciphers, size_t len, const char *ciphe
         }
 
         /* Make sure new cipher name fits in cipher string */
-        if ((SIZE_MAX - openssl_ciphers_len) < current_cipher_len
-            || (len - 1) < (openssl_ciphers_len + current_cipher_len))
+        if ((SIZE_MAX - openssl_ciphers_len) < current_cipher_len || (len - 1) < (openssl_ciphers_len + current_cipher_len))
         {
             msg(M_FATAL,
                 "Failed to set restricted TLS cipher list, too long (>%d).",
@@ -422,12 +412,11 @@ convert_tls_list_to_openssl(char *openssl_ciphers, size_t len, const char *ciphe
 
     if (openssl_ciphers_len > 0)
     {
-        openssl_ciphers[openssl_ciphers_len-1] = '\0';
+        openssl_ciphers[openssl_ciphers_len - 1] = '\0';
     }
 }
 
-void
-tls_ctx_restrict_ciphers(struct tls_root_ctx *ctx, const char *ciphers)
+void tls_ctx_restrict_ciphers(struct tls_root_ctx *ctx, const char *ciphers)
 {
     if (ciphers == NULL)
     {
@@ -474,7 +463,7 @@ convert_tls13_list_to_openssl(char *openssl_ciphers, size_t len,
     {
         msg(M_FATAL,
             "Failed to set restricted TLS 1.3 cipher list, too long (>%d).",
-            (int) (len - 1));
+            (int)(len - 1));
     }
 
     strncpy(openssl_ciphers, ciphers, len);
@@ -488,8 +477,7 @@ convert_tls13_list_to_openssl(char *openssl_ciphers, size_t len,
     }
 }
 
-void
-tls_ctx_restrict_ciphers_tls13(struct tls_root_ctx *ctx, const char *ciphers)
+void tls_ctx_restrict_ciphers_tls13(struct tls_root_ctx *ctx, const char *ciphers)
 {
     if (ciphers == NULL)
     {
@@ -500,7 +488,7 @@ tls_ctx_restrict_ciphers_tls13(struct tls_root_ctx *ctx, const char *ciphers)
 
 #if !defined(TLS1_3_VERSION)
     crypto_msg(M_WARN, "Not compiled with OpenSSL 1.1.1 or higher. "
-               "Ignoring TLS 1.3 only tls-ciphersuites '%s' setting.",
+                       "Ignoring TLS 1.3 only tls-ciphersuites '%s' setting.",
                ciphers);
 #else
     ASSERT(NULL != ctx);
@@ -517,11 +505,9 @@ tls_ctx_restrict_ciphers_tls13(struct tls_root_ctx *ctx, const char *ciphers)
 #endif
 }
 
-void
-tls_ctx_set_cert_profile(struct tls_root_ctx *ctx, const char *profile)
+void tls_ctx_set_cert_profile(struct tls_root_ctx *ctx, const char *profile)
 {
-#if OPENSSL_VERSION_NUMBER > 0x10100000L \
-    && (!defined(LIBRESSL_VERSION_NUMBER) || LIBRESSL_VERSION_NUMBER >  0x3060000fL)
+#if OPENSSL_VERSION_NUMBER > 0x10100000L && (!defined(LIBRESSL_VERSION_NUMBER) || LIBRESSL_VERSION_NUMBER > 0x3060000fL)
     /* OpenSSL does not have certificate profiles, but a complex set of
      * callbacks that we could try to implement to achieve something similar.
      * For now, use OpenSSL's security levels to achieve similar (but not equal)
@@ -551,13 +537,13 @@ tls_ctx_set_cert_profile(struct tls_root_ctx *ctx, const char *profile)
     if (profile)
     {
         msg(M_WARN, "WARNING: OpenSSL 1.1.0 and LibreSSL do not support "
-            "--tls-cert-profile, ignoring user-set profile: '%s'", profile);
+                    "--tls-cert-profile, ignoring user-set profile: '%s'",
+            profile);
     }
 #endif /* if OPENSSL_VERSION_NUMBER > 0x10100000L */
 }
 
-void
-tls_ctx_set_tls_groups(struct tls_root_ctx *ctx, const char *groups)
+void tls_ctx_set_tls_groups(struct tls_root_ctx *ctx, const char *groups)
 {
     ASSERT(ctx);
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
@@ -616,8 +602,7 @@ tls_ctx_set_tls_groups(struct tls_root_ctx *ctx, const char *groups)
 #endif /* if OPENSSL_VERSION_NUMBER < 0x30000000L */
 }
 
-void
-tls_ctx_check_cert_time(const struct tls_root_ctx *ctx)
+void tls_ctx_check_cert_time(const struct tls_root_ctx *ctx)
 {
     int ret;
     const X509 *cert;
@@ -652,9 +637,8 @@ tls_ctx_check_cert_time(const struct tls_root_ctx *ctx)
     }
 }
 
-void
-tls_ctx_load_dh_params(struct tls_root_ctx *ctx, const char *dh_file,
-                       bool dh_file_inline)
+void tls_ctx_load_dh_params(struct tls_root_ctx *ctx, const char *dh_file,
+                            bool dh_file_inline)
 {
     BIO *bio;
 
@@ -713,15 +697,14 @@ tls_ctx_load_dh_params(struct tls_root_ctx *ctx, const char *dh_file,
 #endif /* if OPENSSL_VERSION_NUMBER >= 0x30000000L */
 }
 
-void
-tls_ctx_load_ecdh_params(struct tls_root_ctx *ctx, const char *curve_name)
+void tls_ctx_load_ecdh_params(struct tls_root_ctx *ctx, const char *curve_name)
 {
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
     if (curve_name != NULL)
     {
         msg(M_WARN, "WARNING: OpenSSL 3.0+ builds do not support specifying an "
-            "ECDH curve with --ecdh-curve, using default curves. Use "
-            "--tls-groups to specify groups.");
+                    "ECDH curve with --ecdh-curve, using default curves. Use "
+                    "--tls-groups to specify groups.");
     }
 #elif !defined(OPENSSL_NO_EC)
     int nid = NID_undef;
@@ -754,8 +737,7 @@ tls_ctx_load_ecdh_params(struct tls_root_ctx *ctx, const char *curve_name)
     {
         /* Creating key failed, fall back on sane default */
         ecdh = EC_KEY_new_by_curve_name(NID_secp384r1);
-        const char *source = (NULL == curve_name) ?
-                             "extract curve from certificate" : "use supplied curve";
+        const char *source = (NULL == curve_name) ? "extract curve from certificate" : "use supplied curve";
         msg(D_TLS_DEBUG_LOW,
             "Failed to %s (%s), using secp384r1 instead.", source, sname);
         sname = OBJ_nid2sn(NID_secp384r1);
@@ -771,7 +753,7 @@ tls_ctx_load_ecdh_params(struct tls_root_ctx *ctx, const char *curve_name)
     EC_KEY_free(ecdh);
 #else  /* ifndef OPENSSL_NO_EC */
     msg(D_LOW, "Your OpenSSL library was built without elliptic curve support."
-        " Skipping ECDH parameter loading.");
+               " Skipping ECDH parameter loading.");
 #endif /* OPENSSL_NO_EC */
 }
 
@@ -795,7 +777,7 @@ ui_reader(UI *ui, UI_STRING *uis)
         {
             struct user_pass up;
             CLEAR(up);
-            get_user_pass(&up, NULL, "PKCS#11 token", GET_USER_PASS_MANAGEMENT|GET_USER_PASS_PASSWORD_ONLY);
+            get_user_pass(&up, NULL, "PKCS#11 token", GET_USER_PASS_MANAGEMENT | GET_USER_PASS_PASSWORD_ONLY);
             UI_set_result(ui, uis, up.password);
             purge_user_pass(&up, true);
         }
@@ -904,9 +886,8 @@ end:
     return pkey;
 }
 
-int
-tls_ctx_load_pkcs12(struct tls_root_ctx *ctx, const char *pkcs12_file,
-                    bool pkcs12_file_inline, bool load_ca_file)
+int tls_ctx_load_pkcs12(struct tls_root_ctx *ctx, const char *pkcs12_file,
+                        bool pkcs12_file_inline, bool load_ca_file)
 {
     FILE *fp;
     EVP_PKEY *pkey;
@@ -921,8 +902,8 @@ tls_ctx_load_pkcs12(struct tls_root_ctx *ctx, const char *pkcs12_file,
     if (pkcs12_file_inline)
     {
         BIO *b64 = BIO_new(BIO_f_base64());
-        BIO *bio = BIO_new_mem_buf((void *) pkcs12_file,
-                                   (int) strlen(pkcs12_file));
+        BIO *bio = BIO_new_mem_buf((void *)pkcs12_file,
+                                   (int)strlen(pkcs12_file));
         ASSERT(b64 && bio);
         BIO_push(b64, bio);
         p12 = d2i_PKCS12_bio(b64, NULL);
@@ -957,7 +938,7 @@ tls_ctx_load_pkcs12(struct tls_root_ctx *ctx, const char *pkcs12_file,
         if (!PKCS12_parse(p12, password, &pkey, &cert, &ca))
         {
             crypto_msg(M_WARN, "Decoding PKCS12 failed. Probably wrong password "
-                       "or unsupported/legacy encryption");
+                               "or unsupported/legacy encryption");
 #ifdef ENABLE_MANAGEMENT
             if (management && (ERR_GET_REASON(ERR_peek_error()) == PKCS12_R_MAC_VERIFY_FAILURE))
             {
@@ -1034,8 +1015,7 @@ tls_ctx_load_pkcs12(struct tls_root_ctx *ctx, const char *pkcs12_file,
 }
 
 #ifdef ENABLE_CRYPTOAPI
-void
-tls_ctx_load_cryptoapi(struct tls_root_ctx *ctx, const char *cryptoapi_cert)
+void tls_ctx_load_cryptoapi(struct tls_root_ctx *ctx, const char *cryptoapi_cert)
 {
     ASSERT(NULL != ctx);
 
@@ -1060,8 +1040,7 @@ tls_ctx_add_extra_certs(struct tls_root_ctx *ctx, BIO *bio, bool optional)
              *  is found in the buffer.  If loading more certificates is
              *  optional, break without raising an error
              */
-            if (optional
-                && ERR_GET_REASON(ERR_peek_error()) == PEM_R_NO_START_LINE)
+            if (optional && ERR_GET_REASON(ERR_peek_error()) == PEM_R_NO_START_LINE)
             {
                 /* remove that error from error stack */
                 (void)ERR_get_error();
@@ -1186,7 +1165,7 @@ end:
     UI_destroy_method(ui_method);
     OSSL_STORE_INFO_free(info);
     OSSL_STORE_close(store_ctx);
-#else /* defined(HAVE_OPENSSL_STORE_API */
+#else  /* defined(HAVE_OPENSSL_STORE_API */
     ASSERT(0);
 #endif /* defined(HAVE_OPENSSL_STORE_API */
 }
@@ -1203,11 +1182,11 @@ tls_ctx_load_cert_pem_file(struct tls_root_ctx *ctx, const char *cert_file,
 
     if (cert_file_inline)
     {
-        in = BIO_new_mem_buf((char *) cert_file, -1);
+        in = BIO_new_mem_buf((char *)cert_file, -1);
     }
     else
     {
-        in = BIO_new_file((char *) cert_file, "r");
+        in = BIO_new_file((char *)cert_file, "r");
     }
 
     if (in == NULL)
@@ -1253,9 +1232,8 @@ end:
     X509_free(x);
 }
 
-void
-tls_ctx_load_cert_file(struct tls_root_ctx *ctx, const char *cert_file,
-                       bool cert_file_inline)
+void tls_ctx_load_cert_file(struct tls_root_ctx *ctx, const char *cert_file,
+                            bool cert_file_inline)
 {
     if (cert_uri_supported() && !cert_file_inline)
     {
@@ -1267,9 +1245,8 @@ tls_ctx_load_cert_file(struct tls_root_ctx *ctx, const char *cert_file,
     }
 }
 
-int
-tls_ctx_load_priv_file(struct tls_root_ctx *ctx, const char *priv_key_file,
-                       bool priv_key_file_inline)
+int tls_ctx_load_priv_file(struct tls_root_ctx *ctx, const char *priv_key_file,
+                           bool priv_key_file_inline)
 {
     SSL_CTX *ssl_ctx = NULL;
     BIO *in = NULL;
@@ -1282,7 +1259,7 @@ tls_ctx_load_priv_file(struct tls_root_ctx *ctx, const char *priv_key_file,
 
     if (priv_key_file_inline)
     {
-        in = BIO_new_mem_buf((char *) priv_key_file, -1);
+        in = BIO_new_mem_buf((char *)priv_key_file, -1);
         if (in == NULL)
         {
             goto end;
@@ -1322,9 +1299,8 @@ end:
     return ret;
 }
 
-void
-backend_tls_ctx_reload_crl(struct tls_root_ctx *ssl_ctx, const char *crl_file,
-                           bool crl_inline)
+void backend_tls_ctx_reload_crl(struct tls_root_ctx *ssl_ctx, const char *crl_file,
+                                bool crl_inline)
 {
     BIO *in = NULL;
 
@@ -1353,7 +1329,7 @@ backend_tls_ctx_reload_crl(struct tls_root_ctx *ssl_ctx, const char *crl_file,
 
     if (crl_inline)
     {
-        in = BIO_new_mem_buf((char *) crl_file, -1);
+        in = BIO_new_mem_buf((char *)crl_file, -1);
     }
     else
     {
@@ -1405,7 +1381,6 @@ end:
     BIO_free(in);
 }
 
-
 #if defined(ENABLE_MANAGEMENT) && !defined(HAVE_XKEY_PROVIDER)
 
 /* encrypt */
@@ -1453,14 +1428,14 @@ get_rsa_padding_name(const int padding)
 {
     switch (padding)
     {
-        case RSA_PKCS1_PADDING:
-            return "RSA_PKCS1_PADDING";
+    case RSA_PKCS1_PADDING:
+        return "RSA_PKCS1_PADDING";
 
-        case RSA_NO_PADDING:
-            return "RSA_NO_PADDING";
+    case RSA_NO_PADDING:
+        return "RSA_NO_PADDING";
 
-        default:
-            return "UNKNOWN";
+    default:
+        return "UNKNOWN";
     }
 }
 
@@ -1489,7 +1464,6 @@ get_sig_from_man(const unsigned char *dgst, unsigned int dgstlen,
     if (management && bencret > 0)
     {
         out_b64 = management_query_pk_sig(management, in_b64, algorithm);
-
     }
     if (out_b64)
     {
@@ -1593,7 +1567,7 @@ openvpn_extkey_ec_finish(EC_KEY *ec)
 {
     /* release the method structure */
     const EC_KEY_METHOD *ec_meth = EC_KEY_get_method(ec);
-    EC_KEY_METHOD_free((EC_KEY_METHOD *) ec_meth);
+    EC_KEY_METHOD_free((EC_KEY_METHOD *)ec_meth);
 }
 
 /* EC_KEY_METHOD callback: sign().
@@ -1710,8 +1684,7 @@ err:
 #endif /* ENABLE_MANAGEMENT && !HAVE_XKEY_PROVIDER */
 
 #ifdef ENABLE_MANAGEMENT
-int
-tls_ctx_use_management_external_key(struct tls_root_ctx *ctx)
+int tls_ctx_use_management_external_key(struct tls_root_ctx *ctx)
 {
     int ret = 1;
 
@@ -1727,17 +1700,16 @@ tls_ctx_use_management_external_key(struct tls_root_ctx *ctx)
 
 #ifdef HAVE_XKEY_PROVIDER
     EVP_PKEY *privkey = xkey_load_management_key(tls_libctx, pkey);
-    if (!privkey
-        || !SSL_CTX_use_PrivateKey(ctx->ctx, privkey))
+    if (!privkey || !SSL_CTX_use_PrivateKey(ctx->ctx, privkey))
     {
         EVP_PKEY_free(privkey);
         goto cleanup;
     }
     EVP_PKEY_free(privkey);
-#else  /* ifdef HAVE_XKEY_PROVIDER */
+#else /* ifdef HAVE_XKEY_PROVIDER */
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
     if (EVP_PKEY_id(pkey) == EVP_PKEY_RSA)
-#else /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#else  /* OPENSSL_VERSION_NUMBER < 0x30000000L */
     if (EVP_PKEY_is_a(pkey, "RSA"))
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
     {
@@ -1749,7 +1721,7 @@ tls_ctx_use_management_external_key(struct tls_root_ctx *ctx)
 #if !defined(OPENSSL_NO_EC)
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
     else if (EVP_PKEY_id(pkey) == EVP_PKEY_EC)
-#else /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#else  /* OPENSSL_VERSION_NUMBER < 0x30000000L */
     else if (EVP_PKEY_is_a(pkey, "EC"))
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
     {
@@ -1790,9 +1762,8 @@ sk_x509_name_cmp(const X509_NAME *const *a, const X509_NAME *const *b)
     return X509_NAME_cmp(*a, *b);
 }
 
-void
-tls_ctx_load_ca(struct tls_root_ctx *ctx, const char *ca_file,
-                bool ca_file_inline, const char *ca_path, bool tls_server)
+void tls_ctx_load_ca(struct tls_root_ctx *ctx, const char *ca_file,
+                     bool ca_file_inline, const char *ca_path, bool tls_server)
 {
     STACK_OF(X509_INFO) *info_stack = NULL;
     STACK_OF(X509_NAME) *cert_names = NULL;
@@ -1914,7 +1885,7 @@ tls_ctx_load_ca(struct tls_root_ctx *ctx, const char *ca_file,
             if (cnum != added)
             {
                 crypto_msg(M_FATAL, "Cannot load CA certificate file %s (only %d "
-                           "of %d entries were valid X509 names)",
+                                    "of %d entries were valid X509 names)",
                            print_key_filename(ca_file, ca_file_inline), cnum,
                            added);
             }
@@ -1939,9 +1910,8 @@ tls_ctx_load_ca(struct tls_root_ctx *ctx, const char *ca_file,
     }
 }
 
-void
-tls_ctx_load_extra_certs(struct tls_root_ctx *ctx, const char *extra_certs_file,
-                         bool extra_certs_file_inline)
+void tls_ctx_load_extra_certs(struct tls_root_ctx *ctx, const char *extra_certs_file,
+                              bool extra_certs_file_inline)
 {
     BIO *in;
     if (extra_certs_file_inline)
@@ -1958,7 +1928,6 @@ tls_ctx_load_extra_certs(struct tls_root_ctx *ctx, const char *extra_certs_file,
         crypto_msg(M_FATAL, "Cannot load extra-certs file: %s",
                    print_key_filename(extra_certs_file,
                                       extra_certs_file_inline));
-
     }
     else
     {
@@ -1983,10 +1952,10 @@ tls_ctx_load_extra_certs(struct tls_root_ctx *ctx, const char *extra_certs_file,
 
 #warning BIO_DEBUG defined
 
-static FILE *biofp;                            /* GLOBAL */
-static bool biofp_toggle;                      /* GLOBAL */
-static time_t biofp_last_open;                 /* GLOBAL */
-static const int biofp_reopen_interval = 600;  /* GLOBAL */
+static FILE *biofp;                           /* GLOBAL */
+static bool biofp_toggle;                     /* GLOBAL */
+static time_t biofp_last_open;                /* GLOBAL */
+static const int biofp_reopen_interval = 600; /* GLOBAL */
 
 static void
 close_biofp(void)
@@ -2083,7 +2052,7 @@ bio_write(BIO *bio, const uint8_t *data, int size, const char *desc)
             ERR_clear_error();
         }
         else
-        {                       /* successful write */
+        { /* successful write */
             dmsg(D_HANDSHAKE_VERBOSE, "BIO write %s %d bytes", desc, i);
             ret = 1;
         }
@@ -2101,7 +2070,7 @@ bio_write_post(const int status, struct buffer *buf)
 {
     if (status == 1) /* success status return from bio_write? */
     {
-        memset(BPTR(buf), 0, BLEN(buf));  /* erase data just written */
+        memset(BPTR(buf), 0, BLEN(buf)); /* erase data just written */
         buf->len = 0;
     }
 }
@@ -2127,7 +2096,7 @@ bio_read(BIO *bio, struct buffer *buf, const char *desc)
      */
     int i = BIO_read(bio, BPTR(buf), len);
 
-    VALGRIND_MAKE_READABLE((void *) &i, sizeof(i));
+    VALGRIND_MAKE_READABLE((void *)&i, sizeof(i));
 
 #ifdef BIO_DEBUG
     bio_debug_data("read", bio, BPTR(buf), i, desc);
@@ -2149,17 +2118,16 @@ bio_read(BIO *bio, struct buffer *buf, const char *desc)
         buf->len = 0;
     }
     else
-    {                       /* successful read */
+    { /* successful read */
         dmsg(D_HANDSHAKE_VERBOSE, "BIO read %s %d bytes", desc, i);
         buf->len = i;
         ret = 1;
-        VALGRIND_MAKE_READABLE((void *) BPTR(buf), BLEN(buf));
+        VALGRIND_MAKE_READABLE((void *)BPTR(buf), BLEN(buf));
     }
     return ret;
 }
 
-void
-key_state_ssl_init(struct key_state_ssl *ks_ssl, const struct tls_root_ctx *ssl_ctx, bool is_server, struct tls_session *session)
+void key_state_ssl_init(struct key_state_ssl *ks_ssl, const struct tls_root_ctx *ssl_ctx, bool is_server, struct tls_session *session)
 {
     ASSERT(NULL != ssl_ctx);
     ASSERT(ks_ssl);
@@ -2198,14 +2166,12 @@ key_state_ssl_init(struct key_state_ssl *ks_ssl, const struct tls_root_ctx *ssl_
     BIO_set_ssl(ks_ssl->ssl_bio, ks_ssl->ssl, BIO_NOCLOSE);
 }
 
-void
-key_state_ssl_shutdown(struct key_state_ssl *ks_ssl)
+void key_state_ssl_shutdown(struct key_state_ssl *ks_ssl)
 {
     SSL_set_shutdown(ks_ssl->ssl, SSL_SENT_SHUTDOWN | SSL_RECEIVED_SHUTDOWN);
 }
 
-void
-key_state_ssl_free(struct key_state_ssl *ks_ssl)
+void key_state_ssl_free(struct key_state_ssl *ks_ssl)
 {
     if (ks_ssl->ssl)
     {
@@ -2219,8 +2185,7 @@ key_state_ssl_free(struct key_state_ssl *ks_ssl)
     }
 }
 
-int
-key_state_write_plaintext(struct key_state_ssl *ks_ssl, struct buffer *buf)
+int key_state_write_plaintext(struct key_state_ssl *ks_ssl, struct buffer *buf)
 {
     int ret = 0;
     perf_push(PERF_BIO_WRITE_PLAINTEXT);
@@ -2235,8 +2200,7 @@ key_state_write_plaintext(struct key_state_ssl *ks_ssl, struct buffer *buf)
     return ret;
 }
 
-int
-key_state_write_plaintext_const(struct key_state_ssl *ks_ssl, const uint8_t *data, int len)
+int key_state_write_plaintext_const(struct key_state_ssl *ks_ssl, const uint8_t *data, int len)
 {
     int ret = 0;
     perf_push(PERF_BIO_WRITE_PLAINTEXT);
@@ -2249,8 +2213,7 @@ key_state_write_plaintext_const(struct key_state_ssl *ks_ssl, const uint8_t *dat
     return ret;
 }
 
-int
-key_state_read_ciphertext(struct key_state_ssl *ks_ssl, struct buffer *buf)
+int key_state_read_ciphertext(struct key_state_ssl *ks_ssl, struct buffer *buf)
 {
     int ret = 0;
     perf_push(PERF_BIO_READ_CIPHERTEXT);
@@ -2263,8 +2226,7 @@ key_state_read_ciphertext(struct key_state_ssl *ks_ssl, struct buffer *buf)
     return ret;
 }
 
-int
-key_state_write_ciphertext(struct key_state_ssl *ks_ssl, struct buffer *buf)
+int key_state_write_ciphertext(struct key_state_ssl *ks_ssl, struct buffer *buf)
 {
     int ret = 0;
     perf_push(PERF_BIO_WRITE_CIPHERTEXT);
@@ -2278,8 +2240,7 @@ key_state_write_ciphertext(struct key_state_ssl *ks_ssl, struct buffer *buf)
     return ret;
 }
 
-int
-key_state_read_plaintext(struct key_state_ssl *ks_ssl, struct buffer *buf)
+int key_state_read_plaintext(struct key_state_ssl *ks_ssl, struct buffer *buf)
 {
     int ret = 0;
     perf_push(PERF_BIO_READ_PLAINTEXT);
@@ -2332,7 +2293,7 @@ print_pkey_details(EVP_PKEY *pkey, char *buf, size_t buflen)
         type = OBJ_nid2sn(typeid);
 
         /* OpenSSL reports rsaEncryption, dsaEncryption and
-        * id-ecPublicKey, map these values to nicer ones */
+         * id-ecPublicKey, map these values to nicer ones */
         if (typeid == EVP_PKEY_RSA)
         {
             type = "RSA";
@@ -2350,7 +2311,7 @@ print_pkey_details(EVP_PKEY *pkey, char *buf, size_t buflen)
         {
             type = "unknown type";
         }
-#else /* OpenSSL >= 3 */
+#else  /* OpenSSL >= 3 */
         type = EVP_PKEY_get0_type_name(pkey);
         if (type == NULL)
         {
@@ -2373,10 +2334,10 @@ static void
 print_cert_details(X509 *cert, char *buf, size_t buflen)
 {
     EVP_PKEY *pkey = X509_get_pubkey(cert);
-    char pkeybuf[64] = { 0 };
+    char pkeybuf[64] = {0};
     print_pkey_details(pkey, pkeybuf, sizeof(pkeybuf));
 
-    char sig[128] = { 0 };
+    char sig[128] = {0};
     int signature_nid = X509_get_signature_nid(cert);
     if (signature_nid != 0)
     {
@@ -2400,7 +2361,7 @@ print_server_tempkey(SSL *ssl, char *buf, size_t buflen)
         return;
     }
 
-    char pkeybuf[128] = { 0 };
+    char pkeybuf[128] = {0};
     print_pkey_details(pkey, pkeybuf, sizeof(pkeybuf));
 
     snprintf(buf, buflen, ", peer temporary key: %s",
@@ -2409,8 +2370,7 @@ print_server_tempkey(SSL *ssl, char *buf, size_t buflen)
     EVP_PKEY_free(pkey);
 }
 
-#if !defined(LIBRESSL_VERSION_NUMBER) \
-    || (defined(LIBRESSL_VERSION_NUMBER) && LIBRESSL_VERSION_NUMBER >= 0x3090000fL)
+#if !defined(LIBRESSL_VERSION_NUMBER) || (defined(LIBRESSL_VERSION_NUMBER) && LIBRESSL_VERSION_NUMBER >= 0x3090000fL)
 /**
  * Translate an OpenSSL NID into a more human readable name
  * @param nid
@@ -2422,23 +2382,23 @@ get_sigtype(int nid)
     /* Fix a few OpenSSL names to be better understandable */
     switch (nid)
     {
-        case EVP_PKEY_RSA:
-            /* will otherwise say rsaEncryption */
-            return "RSA";
+    case EVP_PKEY_RSA:
+        /* will otherwise say rsaEncryption */
+        return "RSA";
 
-        case EVP_PKEY_DSA:
-            /* dsaEncryption otherwise */
-            return "DSA";
+    case EVP_PKEY_DSA:
+        /* dsaEncryption otherwise */
+        return "DSA";
 
-        case EVP_PKEY_EC:
-            /* will say id-ecPublicKey */
-            return "ECDSA";
+    case EVP_PKEY_EC:
+        /* will say id-ecPublicKey */
+        return "ECDSA";
 
-        case -1:
-            return "(error getting name)";
+    case -1:
+        return "(error getting name)";
 
-        default:
-            return OBJ_nid2sn(nid);
+    default:
+        return OBJ_nid2sn(nid);
     }
 }
 #endif /* ifndef LIBRESSL_VERSION_NUMBER */
@@ -2458,19 +2418,16 @@ print_peer_signature(SSL *ssl, char *buf, size_t buflen)
      * string as new OpenSSL APIs do, there seem to be no API that replaces
      * it yet */
 #if !defined(LIBRESSL_VERSION_NUMBER) || LIBRESSL_VERSION_NUMBER > 0x3050400fL
-    if (SSL_get_peer_signature_nid(ssl, &peer_sig_nid)
-        && peer_sig_nid != NID_undef)
+    if (SSL_get_peer_signature_nid(ssl, &peer_sig_nid) && peer_sig_nid != NID_undef)
     {
         peer_sig = OBJ_nid2sn(peer_sig_nid);
     }
 #endif
 
-#if !defined(LIBRESSL_VERSION_NUMBER) \
-    || (defined(LIBRESSL_VERSION_NUMBER) && LIBRESSL_VERSION_NUMBER >= 0x3090000fL)
+#if !defined(LIBRESSL_VERSION_NUMBER) || (defined(LIBRESSL_VERSION_NUMBER) && LIBRESSL_VERSION_NUMBER >= 0x3090000fL)
     /* LibreSSL 3.7.x and 3.8.x implement this function but do not export it
      * and fail linking with an unresolved symbol */
-    if (SSL_get_peer_signature_type_nid(ssl, &peer_sig_type_nid)
-        && peer_sig_type_nid != NID_undef)
+    if (SSL_get_peer_signature_type_nid(ssl, &peer_sig_type_nid) && peer_sig_type_nid != NID_undef)
     {
         peer_sig_type = get_sigtype(peer_sig_type_nid);
     }
@@ -2485,8 +2442,6 @@ print_peer_signature(SSL *ssl, char *buf, size_t buflen)
              peer_sig, peer_sig_type);
 }
 
-
-
 /* **************************************
  *
  * Information functions
@@ -2494,8 +2449,7 @@ print_peer_signature(SSL *ssl, char *buf, size_t buflen)
  * Print information for the end user.
  *
  ***************************************/
-void
-print_details(struct key_state_ssl *ks_ssl, const char *prefix)
+void print_details(struct key_state_ssl *ks_ssl, const char *prefix)
 {
     const SSL_CIPHER *ciph;
     char s1[256];
@@ -2523,10 +2477,9 @@ print_details(struct key_state_ssl *ks_ssl, const char *prefix)
     msg(D_HANDSHAKE, "%s%s%s%s", s1, s2, s3, s4);
 }
 
-void
-show_available_tls_ciphers_list(const char *cipher_list,
-                                const char *tls_cert_profile,
-                                bool tls13)
+void show_available_tls_ciphers_list(const char *cipher_list,
+                                     const char *tls_cert_profile,
+                                     bool tls13)
 {
     struct tls_root_ctx tls_ctx;
 
@@ -2598,8 +2551,7 @@ show_available_tls_ciphers_list(const char *cipher_list,
  * Show the Elliptic curves that are available for us to use
  * in the OpenSSL library.
  */
-void
-show_available_curves(void)
+void show_available_curves(void)
 {
     printf("Consider using 'openssl ecparam -list_curves' as alternative to running\n"
            "this command.\n"
@@ -2618,7 +2570,7 @@ show_available_curves(void)
         for (n = 0; n < crv_len; n++)
         {
             const char *sname;
-            sname   = OBJ_nid2sn(curves[n].nid);
+            sname = OBJ_nid2sn(curves[n].nid);
             if (sname == NULL)
             {
                 sname = "";
@@ -2634,7 +2586,7 @@ show_available_curves(void)
     free(curves);
 #else  /* ifndef OPENSSL_NO_EC */
     msg(M_WARN, "Your OpenSSL library was built without elliptic curve support. "
-        "No curves available.");
+                "No curves available.");
 #endif /* ifndef OPENSSL_NO_EC */
 }
 
@@ -2643,7 +2595,6 @@ get_ssl_library_version(void)
 {
     return OpenSSL_version(OPENSSL_VERSION);
 }
-
 
 /** Some helper routines for provider load/unload */
 #ifdef HAVE_XKEY_PROVIDER
@@ -2658,7 +2609,7 @@ provider_load(OSSL_PROVIDER *prov, void *dest_libctx)
 static int
 provider_unload(OSSL_PROVIDER *prov, void *unused)
 {
-    (void) unused;
+    (void)unused;
     OSSL_PROVIDER_unload(prov);
     return 1;
 }
@@ -2671,8 +2622,7 @@ provider_unload(OSSL_PROVIDER *prov, void *unused)
  * system-wide property query set on the default context. But we
  * want to avoid that.
  */
-void
-load_xkey_provider(void)
+void load_xkey_provider(void)
 {
 #ifdef HAVE_XKEY_PROVIDER
 
@@ -2696,7 +2646,7 @@ load_xkey_provider(void)
         if (!OSSL_PROVIDER_load(tls_libctx, "ovpn.xkey"))
         {
             msg(M_NONFATAL, "ERROR: failed loading external key provider: "
-                "Signing with external keys will not work.");
+                            "Signing with external keys will not work.");
         }
     }
 

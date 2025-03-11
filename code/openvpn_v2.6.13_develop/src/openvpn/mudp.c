@@ -464,10 +464,9 @@ void tunnel_server_udp(struct context *top)
     top->mode = CM_TOP;
     context_clear_2(top);
 
-    /* initialize top-tunnel instance */
-
     /*The function init_instance_handle_signals is responsible for setting up the tunnel instance, configuring it (including mutual authentication, key exchange, and tunnel setup), and managing signal handling both before and after the initialization of the tunnel.*/
 
+    /* initialize top-tunnel instance */
     init_instance_handle_signals(top, top->es, CC_HARD_USR1_TO_HUP);
     if (IS_SIG(top))
     {

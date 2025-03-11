@@ -40,6 +40,7 @@
 #include "buffer.h"
 
 /* TLS uses a tag of 128 bytes, let's do the same for OpenVPN */
+/* ===== In both openssl & mbedtls scripts =====*/
 #define OPENVPN_AEAD_TAG_LENGTH 16
 
 /* Maximum cipher block size (bytes) */
@@ -56,6 +57,7 @@ typedef enum
 } hash_algo_type;
 
 /** Struct used in cipher name translation table */
+/* ===== In both openssl & mbedtls scripts =====*/
 typedef struct
 {
     const char *openvpn_name; /**< Cipher name used by OpenVPN */
@@ -63,6 +65,7 @@ typedef struct
 } cipher_name_pair;
 
 /** Cipher name translation table */
+/* ===== In both openssl & mbedtls scripts =====*/
 extern const cipher_name_pair cipher_name_translation_table[];
 extern const size_t cipher_name_translation_table_count;
 
@@ -86,6 +89,7 @@ void crypto_init_lib_engine(const char *engine_name);
  * @param provider name of providers to load
  * @return reference to the loaded provider
  */
+/* ===== In both openssl & mbedtls scripts =====*/
 provider_t *crypto_load_provider(const char *provider);
 
 /**

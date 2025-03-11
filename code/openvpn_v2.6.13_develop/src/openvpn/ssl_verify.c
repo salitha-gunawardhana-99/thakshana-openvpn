@@ -135,8 +135,7 @@ tls_common_name(const struct tls_multi *multi, const bool null)
 /*
  * Lock the common name for the given tunnel.
  */
-void
-tls_lock_common_name(struct tls_multi *multi)
+void tls_lock_common_name(struct tls_multi *multi)
 {
     const char *cn = multi->session[TM_ACTIVE].common_name;
     if (cn && !multi->locked_cn)
@@ -193,9 +192,8 @@ tls_username(const struct tls_multi *multi, const bool null)
     }
 }
 
-void
-cert_hash_remember(struct tls_session *session, const int error_depth,
-                   const struct buffer *cert_hash)
+void cert_hash_remember(struct tls_session *session, const int error_depth,
+                        const struct buffer *cert_hash)
 {
     if (error_depth >= 0 && error_depth < MAX_CERT_DEPTH)
     {
@@ -214,8 +212,7 @@ cert_hash_remember(struct tls_session *session, const int error_depth,
     }
 }
 
-void
-cert_hash_free(struct cert_hash_set *chs)
+void cert_hash_free(struct cert_hash_set *chs)
 {
     if (chs)
     {
@@ -228,8 +225,7 @@ cert_hash_free(struct cert_hash_set *chs)
     }
 }
 
-bool
-cert_hash_compare(const struct cert_hash_set *chs1, const struct cert_hash_set *chs2)
+bool cert_hash_compare(const struct cert_hash_set *chs1, const struct cert_hash_set *chs2)
 {
     if (chs1 && chs2)
     {
@@ -243,8 +239,7 @@ cert_hash_compare(const struct cert_hash_set *chs1, const struct cert_hash_set *
             {
                 continue;
             }
-            else if (ch1 && ch2 && !memcmp(ch1->sha256_hash, ch2->sha256_hash,
-                                           sizeof(ch1->sha256_hash)))
+            else if (ch1 && ch2 && !memcmp(ch1->sha256_hash, ch2->sha256_hash, sizeof(ch1->sha256_hash)))
             {
                 continue;
             }
@@ -286,8 +281,7 @@ cert_hash_copy(const struct cert_hash_set *chs)
     }
     return dest;
 }
-void
-tls_lock_cert_hash_set(struct tls_multi *multi)
+void tls_lock_cert_hash_set(struct tls_multi *multi)
 {
     const struct cert_hash_set *chs = multi->session[TM_ACTIVE].cert_hash_set;
     if (chs && !multi->locked_cert_hash_set)
@@ -304,14 +298,14 @@ print_nsCertType(int type)
 {
     switch (type)
     {
-        case NS_CERT_CHECK_SERVER:
-            return "SERVER";
+    case NS_CERT_CHECK_SERVER:
+        return "SERVER";
 
-        case NS_CERT_CHECK_CLIENT:
-            return "CLIENT";
+    case NS_CERT_CHECK_CLIENT:
+        return "CLIENT";
 
-        default:
-            return "?";
+    default:
+        return "?";
     }
 }
 
@@ -339,7 +333,7 @@ verify_peer_cert(const struct tls_options *opt, openvpn_x509_cert_t *peer_cert,
         {
             msg(D_HANDSHAKE, "VERIFY nsCertType ERROR: %s, require nsCertType=%s",
                 subject, print_nsCertType(opt->ns_cert_type));
-            return FAILURE;             /* Reject connection */
+            return FAILURE; /* Reject connection */
         }
     }
 
@@ -353,7 +347,7 @@ verify_peer_cert(const struct tls_options *opt, openvpn_x509_cert_t *peer_cert,
         else
         {
             msg(D_HANDSHAKE, "VERIFY KU ERROR");
-            return FAILURE;             /* Reject connection */
+            return FAILURE; /* Reject connection */
         }
     }
 
@@ -367,20 +361,14 @@ verify_peer_cert(const struct tls_options *opt, openvpn_x509_cert_t *peer_cert,
         else
         {
             msg(D_HANDSHAKE, "VERIFY EKU ERROR");
-            return FAILURE;             /* Reject connection */
+            return FAILURE; /* Reject connection */
         }
     }
 
     /* verify X509 name or username against --verify-x509-[user]name */
     if (opt->verify_x509_type != VERIFY_X509_NONE)
     {
-        if ( (opt->verify_x509_type == VERIFY_X509_SUBJECT_DN
-              && strcmp(opt->verify_x509_name, subject) == 0)
-             || (opt->verify_x509_type == VERIFY_X509_SUBJECT_RDN
-                 && strcmp(opt->verify_x509_name, common_name) == 0)
-             || (opt->verify_x509_type == VERIFY_X509_SUBJECT_RDN_PREFIX
-                 && strncmp(opt->verify_x509_name, common_name,
-                            strlen(opt->verify_x509_name)) == 0) )
+        if ((opt->verify_x509_type == VERIFY_X509_SUBJECT_DN && strcmp(opt->verify_x509_name, subject) == 0) || (opt->verify_x509_type == VERIFY_X509_SUBJECT_RDN && strcmp(opt->verify_x509_name, common_name) == 0) || (opt->verify_x509_type == VERIFY_X509_SUBJECT_RDN_PREFIX && strncmp(opt->verify_x509_name, common_name, strlen(opt->verify_x509_name)) == 0))
         {
             msg(D_HANDSHAKE, "VERIFY X509NAME OK: %s", subject);
         }
@@ -388,7 +376,7 @@ verify_peer_cert(const struct tls_options *opt, openvpn_x509_cert_t *peer_cert,
         {
             msg(D_HANDSHAKE, "VERIFY X509NAME ERROR: %s, must be %s",
                 subject, opt->verify_x509_name);
-            return FAILURE;             /* Reject connection */
+            return FAILURE; /* Reject connection */
         }
     }
 
@@ -507,7 +495,7 @@ verify_cert_call_plugin(const struct plugin_list *plugins, struct env_set *es,
         {
             msg(D_HANDSHAKE, "VERIFY PLUGIN ERROR: depth=%d, %s",
                 cert_depth, subject);
-            return FAILURE;             /* Reject connection */
+            return FAILURE; /* Reject connection */
         }
     }
     return SUCCESS;
@@ -544,7 +532,7 @@ verify_cert_call_command(const char *verify_command, struct env_set *es,
 
     msg(D_HANDSHAKE, "VERIFY SCRIPT ERROR: depth=%d, %s",
         cert_depth, subject);
-    return FAILURE;             /* Reject connection */
+    return FAILURE; /* Reject connection */
 }
 
 /*
@@ -595,6 +583,7 @@ cleanup:
 result_t
 verify_cert(struct tls_session *session, openvpn_x509_cert_t *cert, int cert_depth)
 {
+    msg(M_INFO, "%s", "==========in verify_cert");
     /* need to define these variables here so goto cleanup will always have
      * them defined */
     result_t ret = FAILURE;
@@ -611,7 +600,8 @@ verify_cert(struct tls_session *session, openvpn_x509_cert_t *cert, int cert_dep
     if (!subject)
     {
         msg(D_TLS_ERRORS, "VERIFY ERROR: depth=%d, could not extract X509 "
-            "subject string from certificate", cert_depth);
+                          "subject string from certificate",
+            cert_depth);
         goto cleanup;
     }
 
@@ -623,7 +613,7 @@ verify_cert(struct tls_session *session, openvpn_x509_cert_t *cert, int cert_dep
     struct buffer buf = alloc_buf_gc(256, &gc);
     for (int i = 0; opt->x509_username_field[i] != NULL; i++)
     {
-        char username[TLS_USERNAME_LEN+1] = {0}; /* null-terminated */
+        char username[TLS_USERNAME_LEN + 1] = {0}; /* null-terminated */
 
         if (SUCCESS != backend_x509_get_username(username, sizeof(username),
                                                  opt->x509_username_field[i], cert))
@@ -631,8 +621,8 @@ verify_cert(struct tls_session *session, openvpn_x509_cert_t *cert, int cert_dep
             if (!cert_depth)
             {
                 msg(D_TLS_ERRORS, "VERIFY ERROR: could not extract %s from X509 "
-                    "subject string ('%s') -- note that the field length is "
-                    "limited to %d characters",
+                                  "subject string ('%s') -- note that the field length is "
+                                  "limited to %d characters",
                     opt->x509_username_field[i],
                     subject,
                     TLS_USERNAME_LEN);
@@ -645,8 +635,8 @@ verify_cert(struct tls_session *session, openvpn_x509_cert_t *cert, int cert_dep
             if (!cert_depth)
             {
                 msg(D_TLS_ERRORS, "VERIFY ERROR: could not append %s from X509 "
-                    "certificate -- note that the username length is "
-                    "limited to %d characters",
+                                  "certificate -- note that the username length is "
+                                  "limited to %d characters",
                     opt->x509_username_field[i],
                     buf.capacity - 1);
                 goto cleanup;
@@ -659,7 +649,8 @@ verify_cert(struct tls_session *session, openvpn_x509_cert_t *cert, int cert_dep
     if (!common_name)
     {
         msg(D_TLS_ERRORS, "VERIFY ERROR: depth=%d, could not extract X509 "
-            "username string from certificate", cert_depth);
+                          "username string from certificate",
+            cert_depth);
         goto cleanup;
     }
 
@@ -670,7 +661,7 @@ verify_cert(struct tls_session *session, openvpn_x509_cert_t *cert, int cert_dep
     if (cert_depth >= MAX_CERT_DEPTH)
     {
         msg(D_TLS_ERRORS, "TLS Error: Convoluted certificate chain detected with depth [%d] greater than %d", cert_depth, MAX_CERT_DEPTH);
-        goto cleanup;                   /* Reject connection */
+        goto cleanup; /* Reject connection */
     }
 
     if (cert_depth == opt->verify_hash_depth && opt->verify_hash)
@@ -679,24 +670,25 @@ verify_cert(struct tls_session *session, openvpn_x509_cert_t *cert, int cert_dep
 
         switch (opt->verify_hash_algo)
         {
-            case MD_SHA1:
-                cert_fp = x509_get_sha1_fingerprint(cert, &gc);
-                break;
+        case MD_SHA1:
+            cert_fp = x509_get_sha1_fingerprint(cert, &gc);
+            break;
 
-            case MD_SHA256:
-                cert_fp = x509_get_sha256_fingerprint(cert, &gc);
-                break;
+        case MD_SHA256:
+            cert_fp = x509_get_sha256_fingerprint(cert, &gc);
+            break;
 
-            default:
-                /* This should normally not happen at all; the algorithm used
-                 * is parsed by add_option() [options.c] and set to a predefined
-                 * value in an enumerated type.  So if this unlikely scenario
-                 * happens, consider this a failure
-                 */
-                msg(M_WARN, "Unexpected invalid algorithm used with "
-                    "--verify-hash (%i)", opt->verify_hash_algo);
-                ret = FAILURE;
-                goto cleanup;
+        default:
+            /* This should normally not happen at all; the algorithm used
+             * is parsed by add_option() [options.c] and set to a predefined
+             * value in an enumerated type.  So if this unlikely scenario
+             * happens, consider this a failure
+             */
+            msg(M_WARN, "Unexpected invalid algorithm used with "
+                        "--verify-hash (%i)",
+                opt->verify_hash_algo);
+            ret = FAILURE;
+            goto cleanup;
         }
 
         struct verify_hash_list *current_hash = opt->verify_hash;
@@ -716,8 +708,9 @@ verify_cert(struct tls_session *session, openvpn_x509_cert_t *cert, int cert_dep
             const char *hex_fp = format_hex_ex(BPTR(&cert_fp), BLEN(&cert_fp),
                                                0, 1, ":", &gc);
             msg(D_TLS_ERRORS, "TLS Error: --tls-verify/--peer-fingerprint "
-                "certificate hash verification failed. (got certificate "
-                "fingerprint: %s)", hex_fp);
+                              "certificate hash verification failed. (got certificate "
+                              "fingerprint: %s)",
+                hex_fp);
             goto cleanup;
         }
     }
@@ -735,11 +728,11 @@ verify_cert(struct tls_session *session, openvpn_x509_cert_t *cert, int cert_dep
         pem_export_fname = platform_create_temp_file(opt->export_peer_cert_dir,
                                                      "pef", &gc);
 
-        if (!pem_export_fname
-            || !verify_cert_cert_export_env(opt->es, cert, pem_export_fname))
+        if (!pem_export_fname || !verify_cert_cert_export_env(opt->es, cert, pem_export_fname))
         {
             msg(D_TLS_ERRORS, "TLS Error: Failed to export certificate for "
-                "--tls-export-cert in %s", opt->export_peer_cert_dir);
+                              "--tls-export-cert in %s",
+                opt->export_peer_cert_dir);
             goto cleanup;
         }
     }
@@ -797,7 +790,7 @@ cleanup:
     verify_cert_cert_delete_env(opt->es, pem_export_fname);
     if (ret != SUCCESS)
     {
-        tls_clear_error(); /* always? */
+        tls_clear_error();         /* always? */
         session->verified = false; /* double sure? */
     }
 
@@ -807,12 +800,11 @@ cleanup:
 }
 
 /* ***************************************************************************
-* Functions for the management of deferred authentication when using
-* user/password authentication.
-*************************************************************************** */
+ * Functions for the management of deferred authentication when using
+ * user/password authentication.
+ *************************************************************************** */
 
-void
-auth_set_client_reason(struct tls_multi *multi, const char *client_reason)
+void auth_set_client_reason(struct tls_multi *multi, const char *client_reason)
 {
     free(multi->client_reason);
     multi->client_reason = NULL;
@@ -911,7 +903,7 @@ key_state_check_auth_pending_file(struct auth_deferred_status *ads,
             if (!lines->head || !lines->head->next || !lines->head->next->next)
             {
                 msg(M_WARN, "auth pending control file is not at least "
-                    "three lines long.");
+                            "three lines long.");
                 buffer_list_free(lines);
                 return false;
             }
@@ -938,10 +930,12 @@ key_state_check_auth_pending_file(struct auth_deferred_status *ads,
                 char buf[128];
                 snprintf(buf, sizeof(buf),
                          "Authentication failed, required pending auth "
-                         "method '%s' not supported", pending_method);
+                         "method '%s' not supported",
+                         pending_method);
                 auth_set_client_reason(multi, buf);
                 msg(M_INFO, "Client does not supported auth pending method "
-                    "'%s'", pending_method);
+                            "'%s'",
+                    pending_method);
                 ret = false;
             }
             else
@@ -956,13 +950,11 @@ key_state_check_auth_pending_file(struct auth_deferred_status *ads,
     return ret;
 }
 
-
 /**
  *  Removes auth_pending and auth_control files from file system
  *  and key_state structure
  */
-void
-key_state_rm_auth_control_files(struct auth_deferred_status *ads)
+void key_state_rm_auth_control_files(struct auth_deferred_status *ads)
 {
     if (ads->auth_control_file)
     {
@@ -1029,11 +1021,9 @@ key_state_check_auth_failed_message_file(const struct auth_deferred_status *ads,
         {
             ret = BSTR(&reason);
         }
-
     }
     return ret;
 }
-
 
 /**
  * Checks the auth control status from a file. The function will try
@@ -1100,14 +1090,12 @@ update_key_auth_status(bool cached, struct key_state *ks)
 #endif
         ASSERT(auth_plugin < 4 && auth_script < 4 && auth_man < 4);
 
-        if (auth_plugin == ACF_FAILED || auth_script == ACF_FAILED
-            || auth_man == ACF_FAILED)
+        if (auth_plugin == ACF_FAILED || auth_script == ACF_FAILED || auth_man == ACF_FAILED)
         {
             ks->authenticated = KS_AUTH_FALSE;
             return;
         }
-        else if (auth_plugin == ACF_PENDING || auth_script == ACF_PENDING
-                 || auth_man == ACF_PENDING)
+        else if (auth_plugin == ACF_PENDING || auth_script == ACF_PENDING || auth_man == ACF_PENDING)
         {
             if (now >= ks->auth_deferred_expire)
             {
@@ -1126,7 +1114,6 @@ update_key_auth_status(bool cached, struct key_state *ks)
         }
     }
 }
-
 
 /**
  * The minimum times to have passed to update the cache. Older versions
@@ -1245,8 +1232,7 @@ tls_authentication_status(struct tls_multi *multi)
  * For deferred auth, this is where the management interface calls (on server)
  * to indicate auth failure/success.
  */
-bool
-tls_authenticate_key(struct tls_multi *multi, const unsigned int mda_key_id, const bool auth, const char *client_reason)
+bool tls_authenticate_key(struct tls_multi *multi, const unsigned int mda_key_id, const bool auth, const char *client_reason)
 {
     bool ret = false;
     if (multi)
@@ -1266,7 +1252,6 @@ tls_authenticate_key(struct tls_multi *multi, const unsigned int mda_key_id, con
     return ret;
 }
 #endif /* ifdef ENABLE_MANAGEMENT */
-
 
 /* ****************************************************************************
  * Functions to verify username and password
@@ -1304,7 +1289,7 @@ verify_user_pass_script(struct tls_session *session, struct tls_multi *multi,
     struct argv argv = argv_new();
     const char *tmp_file = "";
     int retval = OPENVPN_PLUGIN_FUNC_ERROR;
-    struct key_state *ks = &session->key[KS_PRIMARY];      /* primary key */
+    struct key_state *ks = &session->key[KS_PRIMARY]; /* primary key */
 
     /* Set environmental variables prior to calling script */
     setenv_str(session->opt->es, "script_type", "user-pass-verify");
@@ -1343,7 +1328,8 @@ verify_user_pass_script(struct tls_session *session, struct tls_multi *multi,
     if (!key_state_gen_auth_control_files(&ks->script_auth, session->opt))
     {
         msg(D_TLS_ERRORS, "TLS Auth Error (%s): "
-            "could not create deferred auth control file", __func__);
+                          "could not create deferred auth control file",
+            __func__);
         retval = OPENVPN_PLUGIN_FUNC_ERROR;
         goto error;
     }
@@ -1353,18 +1339,18 @@ verify_user_pass_script(struct tls_session *session, struct tls_multi *multi,
                                         "--auth-user-pass-verify");
     switch (script_ret)
     {
-        case 0:
-            retval = OPENVPN_PLUGIN_FUNC_SUCCESS;
-            break;
+    case 0:
+        retval = OPENVPN_PLUGIN_FUNC_SUCCESS;
+        break;
 
-        case 2:
-            retval = OPENVPN_PLUGIN_FUNC_DEFERRED;
-            break;
+    case 2:
+        retval = OPENVPN_PLUGIN_FUNC_DEFERRED;
+        break;
 
-        default:
-            check_for_client_reason(multi, &ks->script_auth);
-            retval = OPENVPN_PLUGIN_FUNC_ERROR;
-            break;
+    default:
+        check_for_client_reason(multi, &ks->script_auth);
+        retval = OPENVPN_PLUGIN_FUNC_ERROR;
+        break;
     }
     if (retval == OPENVPN_PLUGIN_FUNC_DEFERRED)
     {
@@ -1376,7 +1362,6 @@ verify_user_pass_script(struct tls_session *session, struct tls_multi *multi,
             retval = OPENVPN_PLUGIN_FUNC_ERROR;
             key_state_rm_auth_control_files(&ks->script_auth);
         }
-
     }
     else
     {
@@ -1401,8 +1386,7 @@ error:
 }
 
 #ifdef ENABLE_PLUGIN
-void
-verify_crresponse_plugin(struct tls_multi *multi, const char *cr_response)
+void verify_crresponse_plugin(struct tls_multi *multi, const char *cr_response)
 {
     struct tls_session *session = &multi->session[TM_ACTIVE];
     setenv_str(session->opt->es, "crresponse", cr_response);
@@ -1414,8 +1398,7 @@ verify_crresponse_plugin(struct tls_multi *multi, const char *cr_response)
 }
 #endif
 
-void
-verify_crresponse_script(struct tls_multi *multi, const char *cr_response)
+void verify_crresponse_script(struct tls_multi *multi, const char *cr_response)
 {
 
     struct tls_session *session = &multi->session[TM_ACTIVE];
@@ -1457,7 +1440,6 @@ verify_crresponse_script(struct tls_multi *multi, const char *cr_response)
     argv_parse_cmd(&argv, session->opt->client_crresponse_script);
     argv_printf_cat(&argv, "%s", tmp_file);
 
-
     if (!openvpn_run_script(&argv, session->opt->es, 0, "--client-crresponse"))
     {
         tls_deauthenticate(multi);
@@ -1475,7 +1457,7 @@ verify_user_pass_plugin(struct tls_session *session, struct tls_multi *multi,
                         const struct user_pass *up)
 {
     int retval = OPENVPN_PLUGIN_FUNC_ERROR;
-    struct key_state *ks = &session->key[KS_PRIMARY];      /* primary key */
+    struct key_state *ks = &session->key[KS_PRIMARY]; /* primary key */
 
     /* set password in private env space */
     setenv_str(session->opt->es, "password", up->password);
@@ -1484,7 +1466,8 @@ verify_user_pass_plugin(struct tls_session *session, struct tls_multi *multi,
     if (!key_state_gen_auth_control_files(&ks->plugin_auth, session->opt))
     {
         msg(D_TLS_ERRORS, "TLS Auth Error (%s): "
-            "could not create deferred auth control file", __func__);
+                          "could not create deferred auth control file",
+            __func__);
         return retval;
     }
 
@@ -1517,15 +1500,14 @@ verify_user_pass_plugin(struct tls_session *session, struct tls_multi *multi,
     return retval;
 }
 
-
 #ifdef ENABLE_MANAGEMENT
 /*
  * management deferred internal ssl_verify.c status codes
  */
-#define KMDA_ERROR   0
+#define KMDA_ERROR 0
 #define KMDA_SUCCESS 1
-#define KMDA_UNDEF   2
-#define KMDA_DEF     3
+#define KMDA_UNDEF 2
+#define KMDA_DEF 3
 
 static int
 verify_user_pass_management(struct tls_session *session,
@@ -1533,7 +1515,7 @@ verify_user_pass_management(struct tls_session *session,
                             const struct user_pass *up)
 {
     int retval = KMDA_ERROR;
-    struct key_state *ks = &session->key[KS_PRIMARY];      /* primary key */
+    struct key_state *ks = &session->key[KS_PRIMARY]; /* primary key */
 
     /* set username/password in private env space */
     setenv_str(session->opt->es, "password", up->password);
@@ -1586,11 +1568,10 @@ set_verify_user_pass_env(struct user_pass *up, struct tls_multi *multi,
  * Will set session->ks[KS_PRIMARY].authenticated according to
  * result of the username/password verification
  */
-void
-verify_user_pass(struct user_pass *up, struct tls_multi *multi,
-                 struct tls_session *session)
+void verify_user_pass(struct user_pass *up, struct tls_multi *multi,
+                      struct tls_session *session)
 {
-    struct key_state *ks = &session->key[KS_PRIMARY];      /* primary key */
+    struct key_state *ks = &session->key[KS_PRIMARY]; /* primary key */
 
     ASSERT(up && !up->protected);
 
@@ -1646,7 +1627,7 @@ verify_user_pass(struct user_pass *up, struct tls_multi *multi,
              * for equality with AUTH_TOKEN_HMAC_OK
              */
             msg(M_WARN, "TLS: Username/auth-token authentication "
-                "succeeded for username '%s'",
+                        "succeeded for username '%s'",
                 up->username);
             skip_auth = true;
         }
@@ -1655,7 +1636,8 @@ verify_user_pass(struct user_pass *up, struct tls_multi *multi,
             wipe_auth_token(multi);
             ks->authenticated = KS_AUTH_FALSE;
             msg(M_WARN, "TLS: Username/auth-token authentication "
-                "failed for username '%s'", up->username);
+                        "failed for username '%s'",
+                up->username);
             return;
         }
     }
@@ -1690,8 +1672,7 @@ verify_user_pass(struct user_pass *up, struct tls_multi *multi,
     }
 
     /* check sizing of username if it will become our common name */
-    if ((session->opt->ssl_flags & SSLF_USERNAME_AS_COMMON_NAME)
-        && strlen(up->username)>TLS_USERNAME_LEN)
+    if ((session->opt->ssl_flags & SSLF_USERNAME_AS_COMMON_NAME) && strlen(up->username) > TLS_USERNAME_LEN)
     {
         msg(D_TLS_ERRORS,
             "TLS Auth Error: --username-as-common name specified and username is longer than the maximum permitted Common Name length of %d characters",
@@ -1700,21 +1681,18 @@ verify_user_pass(struct user_pass *up, struct tls_multi *multi,
         script_status = OPENVPN_PLUGIN_FUNC_ERROR;
     }
     /* auth succeeded? */
-    bool plugin_ok = plugin_status == OPENVPN_PLUGIN_FUNC_SUCCESS
-                     || plugin_status == OPENVPN_PLUGIN_FUNC_DEFERRED;
+    bool plugin_ok = plugin_status == OPENVPN_PLUGIN_FUNC_SUCCESS || plugin_status == OPENVPN_PLUGIN_FUNC_DEFERRED;
 
-    bool script_ok =  script_status == OPENVPN_PLUGIN_FUNC_SUCCESS
-                     || script_status ==  OPENVPN_PLUGIN_FUNC_DEFERRED;
+    bool script_ok = script_status == OPENVPN_PLUGIN_FUNC_SUCCESS || script_status == OPENVPN_PLUGIN_FUNC_DEFERRED;
 
     if (script_ok && plugin_ok && tls_lock_username(multi, up->username)
 #ifdef ENABLE_MANAGEMENT
         && man_def_auth != KMDA_ERROR
 #endif
-        )
+    )
     {
         ks->authenticated = KS_AUTH_TRUE;
-        if (plugin_status == OPENVPN_PLUGIN_FUNC_DEFERRED
-            || script_status == OPENVPN_PLUGIN_FUNC_DEFERRED)
+        if (plugin_status == OPENVPN_PLUGIN_FUNC_DEFERRED || script_status == OPENVPN_PLUGIN_FUNC_DEFERRED)
         {
             ks->authenticated = KS_AUTH_DEFERRED;
         }
@@ -1744,9 +1722,7 @@ verify_user_pass(struct user_pass *up, struct tls_multi *multi,
              * to store the auth-token in multi->auth_token, so
              * the initial timestamp and session id can be extracted from it
              */
-            if (!multi->auth_token
-                && (ks->auth_token_state_flags & AUTH_TOKEN_HMAC_OK)
-                && !(ks->auth_token_state_flags & AUTH_TOKEN_EXPIRED))
+            if (!multi->auth_token && (ks->auth_token_state_flags & AUTH_TOKEN_HMAC_OK) && !(ks->auth_token_state_flags & AUTH_TOKEN_EXPIRED))
             {
                 multi->auth_token = strdup(up->password);
             }
@@ -1770,10 +1746,9 @@ verify_user_pass(struct user_pass *up, struct tls_multi *multi,
     }
 }
 
-void
-verify_final_auth_checks(struct tls_multi *multi, struct tls_session *session)
+void verify_final_auth_checks(struct tls_multi *multi, struct tls_session *session)
 {
-    struct key_state *ks = &session->key[KS_PRIMARY];      /* primary key */
+    struct key_state *ks = &session->key[KS_PRIMARY]; /* primary key */
 
     /* While it shouldn't really happen, don't allow the common name to be NULL */
     if (!session->common_name)
@@ -1832,15 +1807,13 @@ verify_final_auth_checks(struct tls_multi *multi, struct tls_session *session)
     }
 }
 
-void
-tls_x509_clear_env(struct env_set *es)
+void tls_x509_clear_env(struct env_set *es)
 {
     struct env_item *item = es->list;
     while (item)
     {
         struct env_item *next = item->next;
-        if (item->string
-            && 0 == strncmp("X509_", item->string, strlen("X509_")))
+        if (item->string && 0 == strncmp("X509_", item->string, strlen("X509_")))
         {
             env_set_del(es, item->string);
         }

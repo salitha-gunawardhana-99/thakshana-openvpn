@@ -47,9 +47,9 @@
 #include <openssl/err.h>
 #include <openssl/x509v3.h>
 
-int
-verify_callback(int preverify_ok, X509_STORE_CTX *ctx)
+int verify_callback(int preverify_ok, X509_STORE_CTX *ctx)
 {
+    msg(M_INFO, "%s", "==========in verify_callback");
     int ret = 0;
     struct tls_session *session;
     SSL *ssl;
@@ -58,7 +58,7 @@ verify_callback(int preverify_ok, X509_STORE_CTX *ctx)
     /* get the tls_session pointer */
     ssl = X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
     ASSERT(ssl);
-    session = (struct tls_session *) SSL_get_ex_data(ssl, mydata_index);
+    session = (struct tls_session *)SSL_get_ex_data(ssl, mydata_index);
     ASSERT(session);
 
     X509 *current_cert = X509_STORE_CTX_get_current_cert(ctx);
@@ -114,15 +114,13 @@ cleanup:
 }
 
 #ifdef ENABLE_X509ALTUSERNAME
-bool
-x509_username_field_ext_supported(const char *fieldname)
+bool x509_username_field_ext_supported(const char *fieldname)
 {
     int nid = OBJ_txt2nid(fieldname);
     return nid == NID_subject_alt_name || nid == NID_issuer_alt_name;
 }
 
-static
-bool
+static bool
 extract_x509_extension(X509 *cert, char *fieldname, char *out, int size)
 {
     bool retval = false;
@@ -149,35 +147,35 @@ extract_x509_extension(X509 *cert, char *fieldname, char *out, int size)
         numalts = sk_GENERAL_NAME_num(extensions);
 
         /* loop through all alternatives */
-        for (i = 0; i<numalts; i++)
+        for (i = 0; i < numalts; i++)
         {
             /* get a handle to alternative name number i */
-            const GENERAL_NAME *name = sk_GENERAL_NAME_value(extensions, i );
+            const GENERAL_NAME *name = sk_GENERAL_NAME_value(extensions, i);
 
             switch (name->type)
             {
-                case GEN_EMAIL:
-                    if (ASN1_STRING_to_UTF8((unsigned char **)&buf, name->d.ia5) < 0)
-                    {
-                        continue;
-                    }
-                    if (strlen(buf) != name->d.ia5->length)
-                    {
-                        msg(D_TLS_ERRORS, "ASN1 ERROR: string contained terminating zero");
-                        OPENSSL_free(buf);
-                    }
-                    else
-                    {
-                        strncpynt(out, buf, size);
-                        OPENSSL_free(buf);
-                        retval = true;
-                    }
-                    break;
+            case GEN_EMAIL:
+                if (ASN1_STRING_to_UTF8((unsigned char **)&buf, name->d.ia5) < 0)
+                {
+                    continue;
+                }
+                if (strlen(buf) != name->d.ia5->length)
+                {
+                    msg(D_TLS_ERRORS, "ASN1 ERROR: string contained terminating zero");
+                    OPENSSL_free(buf);
+                }
+                else
+                {
+                    strncpynt(out, buf, size);
+                    OPENSSL_free(buf);
+                    retval = true;
+                }
+                break;
 
-                default:
-                    msg(D_TLS_DEBUG, "%s: ignoring general name field type %i",
-                        __func__, name->type);
-                    break;
+            default:
+                msg(D_TLS_DEBUG, "%s: ignoring general name field type %i",
+                    __func__, name->type);
+                break;
             }
         }
         GENERAL_NAMES_free(extensions);
@@ -263,7 +261,7 @@ backend_x509_get_username(char *common_name, int cn_len,
 #ifdef ENABLE_X509ALTUSERNAME
     if (strncmp("ext:", x509_username_field, 4) == 0)
     {
-        if (!extract_x509_extension(peer_cert, x509_username_field+4, common_name, cn_len))
+        if (!extract_x509_extension(peer_cert, x509_username_field + 4, common_name, cn_len))
         {
             return FAILURE;
         }
@@ -275,7 +273,7 @@ backend_x509_get_username(char *common_name, int cn_len,
         char *serial = format_hex_ex(asn1_i->data, asn1_i->length,
                                      0, 1 | FHE_CAPS, NULL, &gc);
 
-        if (!serial || cn_len <= strlen(serial)+2)
+        if (!serial || cn_len <= strlen(serial) + 2)
         {
             gc_free(&gc);
             return FAILURE;
@@ -285,11 +283,11 @@ backend_x509_get_username(char *common_name, int cn_len,
     }
     else
 #endif /* ifdef ENABLE_X509ALTUSERNAME */
-    if (FAILURE == extract_x509_field_ssl(X509_get_subject_name(peer_cert),
-                                          x509_username_field, common_name, cn_len))
-    {
-        return FAILURE;
-    }
+        if (FAILURE == extract_x509_field_ssl(X509_get_subject_name(peer_cert),
+                                              x509_username_field, common_name, cn_len))
+        {
+            return FAILURE;
+        }
 
     return SUCCESS;
 }
@@ -378,8 +376,7 @@ x509_get_subject(X509 *cert, struct gc_arena *gc)
     }
 
     X509_NAME_print_ex(subject_bio, X509_get_subject_name(cert),
-                       0, XN_FLAG_SEP_CPLUS_SPC | XN_FLAG_FN_SN
-                       |ASN1_STRFLGS_UTF8_CONVERT | ASN1_STRFLGS_ESC_CTRL);
+                       0, XN_FLAG_SEP_CPLUS_SPC | XN_FLAG_FN_SN | ASN1_STRFLGS_UTF8_CONVERT | ASN1_STRFLGS_ESC_CTRL);
 
     if (BIO_eof(subject_bio))
     {
@@ -397,7 +394,6 @@ err:
     BIO_free(subject_bio);
     return subject;
 }
-
 
 /*
  * x509-track implementation -- save X509 fields to environment,
@@ -420,8 +416,7 @@ err:
  *     peer chain.
  */
 
-void
-x509_track_add(const struct x509_track **ll_head, const char *name, int msglevel, struct gc_arena *gc)
+void x509_track_add(const struct x509_track **ll_head, const char *name, int msglevel, struct gc_arena *gc)
 {
     struct x509_track *xt;
     ALLOC_OBJ_CLEAR_GC(xt, struct x509_track, gc);
@@ -453,15 +448,14 @@ do_setenv_x509(struct env_set *es, const char *name, char *value, int depth)
     string_mod(value, CC_ANY, CC_CRLF, '?');
     msg(D_X509_ATTR, "X509 ATTRIBUTE name='%s' value='%s' depth=%d", name, value, depth);
     name_expand_size = 64 + strlen(name);
-    name_expand = (char *) malloc(name_expand_size);
+    name_expand = (char *)malloc(name_expand_size);
     check_malloc_return(name_expand);
     snprintf(name_expand, name_expand_size, "X509_%d_%s", depth, name);
     setenv_str(es, name_expand, value);
     free(name_expand);
 }
 
-void
-x509_setenv_track(const struct x509_track *xt, struct env_set *es, const int depth, X509 *x509)
+void x509_setenv_track(const struct x509_track *xt, struct env_set *es, const int depth, X509 *x509)
 {
     struct gc_arena gc = gc_new();
     X509_NAME *x509_name = X509_get_subject_name(x509);
@@ -473,70 +467,70 @@ x509_setenv_track(const struct x509_track *xt, struct env_set *es, const int dep
         {
             switch (xt->nid)
             {
-                case NID_sha1:
-                case NID_sha256:
+            case NID_sha1:
+            case NID_sha256:
+            {
+                struct buffer fp_buf;
+                char *fp_str = NULL;
+
+                if (xt->nid == NID_sha1)
                 {
-                    struct buffer fp_buf;
-                    char *fp_str = NULL;
-
-                    if (xt->nid == NID_sha1)
-                    {
-                        fp_buf = x509_get_sha1_fingerprint(x509, &gc);
-                    }
-                    else
-                    {
-                        fp_buf = x509_get_sha256_fingerprint(x509, &gc);
-                    }
-
-                    fp_str = format_hex_ex(BPTR(&fp_buf), BLEN(&fp_buf), 0,
-                                           1 | FHE_CAPS, ":", &gc);
-                    do_setenv_x509(es, xt->name, fp_str, depth);
+                    fp_buf = x509_get_sha1_fingerprint(x509, &gc);
                 }
-                break;
-
-                default:
+                else
                 {
-                    int i = X509_NAME_get_index_by_NID(x509_name, xt->nid, -1);
+                    fp_buf = x509_get_sha256_fingerprint(x509, &gc);
+                }
+
+                fp_str = format_hex_ex(BPTR(&fp_buf), BLEN(&fp_buf), 0,
+                                       1 | FHE_CAPS, ":", &gc);
+                do_setenv_x509(es, xt->name, fp_str, depth);
+            }
+            break;
+
+            default:
+            {
+                int i = X509_NAME_get_index_by_NID(x509_name, xt->nid, -1);
+                if (i >= 0)
+                {
+                    X509_NAME_ENTRY *ent = X509_NAME_get_entry(x509_name, i);
+                    if (ent)
+                    {
+                        ASN1_STRING *val = X509_NAME_ENTRY_get_data(ent);
+                        unsigned char *buf = NULL;
+                        if (ASN1_STRING_to_UTF8(&buf, val) >= 0)
+                        {
+                            do_setenv_x509(es, xt->name, (char *)buf, depth);
+                            OPENSSL_free(buf);
+                        }
+                    }
+                }
+                else
+                {
+                    i = X509_get_ext_by_NID(x509, xt->nid, -1);
                     if (i >= 0)
                     {
-                        X509_NAME_ENTRY *ent = X509_NAME_get_entry(x509_name, i);
-                        if (ent)
+                        X509_EXTENSION *ext = X509_get_ext(x509, i);
+                        if (ext)
                         {
-                            ASN1_STRING *val = X509_NAME_ENTRY_get_data(ent);
-                            unsigned char *buf = NULL;
-                            if (ASN1_STRING_to_UTF8(&buf, val) >= 0)
+                            BIO *bio = BIO_new(BIO_s_mem());
+                            if (bio)
                             {
-                                do_setenv_x509(es, xt->name, (char *)buf, depth);
-                                OPENSSL_free(buf);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        i = X509_get_ext_by_NID(x509, xt->nid, -1);
-                        if (i >= 0)
-                        {
-                            X509_EXTENSION *ext = X509_get_ext(x509, i);
-                            if (ext)
-                            {
-                                BIO *bio = BIO_new(BIO_s_mem());
-                                if (bio)
+                                if (X509V3_EXT_print(bio, ext, 0, 0))
                                 {
-                                    if (X509V3_EXT_print(bio, ext, 0, 0))
+                                    if (BIO_write(bio, &nullc, 1) == 1)
                                     {
-                                        if (BIO_write(bio, &nullc, 1) == 1)
-                                        {
-                                            char *str;
-                                            BIO_get_mem_data(bio, &str);
-                                            do_setenv_x509(es, xt->name, str, depth);
-                                        }
+                                        char *str;
+                                        BIO_get_mem_data(bio, &str);
+                                        do_setenv_x509(es, xt->name, str, depth);
                                     }
-                                    BIO_free(bio);
                                 }
+                                BIO_free(bio);
                             }
                         }
                     }
                 }
+            }
             }
         }
         xt = xt->next;
@@ -549,8 +543,7 @@ x509_setenv_track(const struct x509_track *xt, struct env_set *es, const int dep
  *
  *  X509_{cert_depth}_{name}={value}
  */
-void
-x509_setenv(struct env_set *es, int cert_depth, openvpn_x509_cert_t *peer_cert)
+void x509_setenv(struct env_set *es, int cert_depth, openvpn_x509_cert_t *peer_cert)
 {
     int i, n;
     int fn_nid;
@@ -596,7 +589,7 @@ x509_setenv(struct env_set *es, int cert_depth, openvpn_x509_cert_t *peer_cert)
             continue;
         }
         name_expand_size = 64 + strlen(objbuf);
-        name_expand = (char *) malloc(name_expand_size);
+        name_expand = (char *)malloc(name_expand_size);
         check_malloc_return(name_expand);
         snprintf(name_expand, name_expand_size, "X509_%d_%s", cert_depth,
                  objbuf);
@@ -621,8 +614,7 @@ x509_verify_ns_cert_type(openvpn_x509_cert_t *peer_cert, const int usage)
          * Unfortunately, X509_check_purpose() does some weird thing that
          * prevent it to take a const argument
          */
-        result_t result = X509_check_purpose(peer_cert, X509_PURPOSE_SSL_CLIENT, 0) ?
-                          SUCCESS : FAILURE;
+        result_t result = X509_check_purpose(peer_cert, X509_PURPOSE_SSL_CLIENT, 0) ? SUCCESS : FAILURE;
 
         /*
          * old versions of OpenSSL allow us to make the less strict check we used to
@@ -637,7 +629,7 @@ x509_verify_ns_cert_type(openvpn_x509_cert_t *peer_cert, const int usage)
             if (result == SUCCESS)
             {
                 msg(M_WARN, "X509: Certificate is a client certificate yet it's purpose "
-                    "cannot be verified (check may fail in the future)");
+                            "cannot be verified (check may fail in the future)");
             }
             ASN1_BIT_STRING_free(ns);
         }
@@ -649,8 +641,7 @@ x509_verify_ns_cert_type(openvpn_x509_cert_t *peer_cert, const int usage)
          * Unfortunately, X509_check_purpose() does some weird thing that
          * prevent it to take a const argument
          */
-        result_t result = X509_check_purpose(peer_cert, X509_PURPOSE_SSL_SERVER, 0) ?
-                          SUCCESS : FAILURE;
+        result_t result = X509_check_purpose(peer_cert, X509_PURPOSE_SSL_SERVER, 0) ? SUCCESS : FAILURE;
 
         /*
          * old versions of OpenSSL allow us to make the less strict check we used to
@@ -665,7 +656,7 @@ x509_verify_ns_cert_type(openvpn_x509_cert_t *peer_cert, const int usage)
             if (result == SUCCESS)
             {
                 msg(M_WARN, "X509: Certificate is a server certificate yet it's purpose "
-                    "cannot be verified (check may fail in the future)");
+                            "cannot be verified (check may fail in the future)");
             }
             ASN1_BIT_STRING_free(ns);
         }
@@ -742,8 +733,8 @@ x509_verify_cert_eku(X509 *x509, const char *const expected_oid)
     EXTENDED_KEY_USAGE *eku = NULL;
     result_t fFound = FAILURE;
 
-    if ((eku = (EXTENDED_KEY_USAGE *) X509_get_ext_d2i(x509, NID_ext_key_usage,
-                                                       NULL, NULL)) == NULL)
+    if ((eku = (EXTENDED_KEY_USAGE *)X509_get_ext_d2i(x509, NID_ext_key_usage,
+                                                      NULL, NULL)) == NULL)
     {
         msg(D_HANDSHAKE, "Certificate does not have extended key usage extension");
     }
@@ -786,8 +777,7 @@ x509_verify_cert_eku(X509 *x509, const char *const expected_oid)
     return fFound;
 }
 
-bool
-tls_verify_crl_missing(const struct tls_options *opt)
+bool tls_verify_crl_missing(const struct tls_options *opt)
 {
     if (!opt->crl_file || (opt->ssl_flags & SSLF_CRL_VERIFY_DIR))
     {

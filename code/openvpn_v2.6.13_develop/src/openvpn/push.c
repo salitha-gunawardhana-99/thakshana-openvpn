@@ -773,6 +773,7 @@ bool send_push_reply(struct context *c, struct push_list *per_client_push_list)
     if (!send_push_options(c, &buf, &c->options.push_list, safe_cap,
                            &push_sent, &multi_push))
     {
+        msg(M_INFO, "%s", "==========in send_push_reply: send options which are common to all clients");
         goto fail;
     }
 
@@ -780,19 +781,23 @@ bool send_push_reply(struct context *c, struct push_list *per_client_push_list)
     if (!send_push_options(c, &buf, per_client_push_list, safe_cap,
                            &push_sent, &multi_push))
     {
+        msg(M_INFO, "%s", "==========in send_push_reply: send client-specific options");
         goto fail;
     }
 
     if (multi_push)
     {
+        msg(M_INFO, "%s", "==========in send_push_reply: multi_push");
         buf_printf(&buf, ",push-continuation 1");
     }
 
     if (BLEN(&buf) > sizeof(push_reply_cmd) - 1)
     {
+        msg(M_INFO, "%s", "==========in send_push_reply: try_send");
         const bool status = send_control_channel_string(c, BSTR(&buf), D_PUSH);
         if (!status)
         {
+            msg(M_INFO, "%s", "==========in send_push_reply: try_send_fail");
             goto fail;
         }
         push_sent = true;
@@ -803,6 +808,7 @@ bool send_push_reply(struct context *c, struct push_list *per_client_push_list)
      */
     if (!push_sent)
     {
+        msg(M_INFO, "%s", "==========in send_push_reply: try_send_empty");
         bool status = false;
 
         buf_reset_len(&buf);
@@ -810,6 +816,7 @@ bool send_push_reply(struct context *c, struct push_list *per_client_push_list)
         status = send_control_channel_string(c, BSTR(&buf), D_PUSH);
         if (!status)
         {
+            msg(M_INFO, "%s", "==========in send_push_reply: try_send_empty_fail");
             goto fail;
         }
     }

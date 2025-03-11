@@ -52,6 +52,7 @@ openvpn_SOURCES = \
 	comp-lz4.c comp-lz4.h \
 	crypto.c crypto.h crypto_backend.h \
 	crypto_openssl.c crypto_openssl.h \
+	crypto_customs.h crypto_customs.c \
 	crypto_mbedtls.c crypto_mbedtls.h \
 	crypto_epoch.c crypto_epoch.h \
 	dco.c dco.h dco_internal.h \
@@ -148,8 +149,7 @@ openvpn_SOURCES = \
 	xkey_helper.c \
 	win32.h win32.c \
 	win32-util.h win32-util.c \
-	cryptoapi.h cryptoapi.c \
-	customs.h customs.c
+	cryptoapi.h cryptoapi.c
 openvpn_LDADD = \
 	$(top_builddir)/src/compat/libcompat.la \
 	$(SOCKETS_LIBS) \

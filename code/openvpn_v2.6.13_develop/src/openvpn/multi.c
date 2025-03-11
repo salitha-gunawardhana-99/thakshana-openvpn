@@ -1781,7 +1781,6 @@ multi_client_connect_setenv(struct multi_context *m,
 static bool
 multi_client_set_protocol_options(struct context *c)
 {
-    msg(M_INFO, "%s", "======================================== multi_client_set_protocol_options");
     struct tls_multi *tls_multi = c->c2.tls_multi;
     const char *const peer_info = tls_multi->peer_info;
     struct options *o = &c->options;
@@ -1864,10 +1863,6 @@ multi_client_set_protocol_options(struct context *c)
     char *push_cipher = ncp_get_best_cipher(o->ncp_ciphers, peer_info,
                                             tls_multi->remote_ciphername,
                                             &o->gc);
-    // msg(M_INFO, "%s", o->ncp_ciphers);
-    // msg(M_INFO, "%s", peer_info);
-    // msg(M_INFO, "%s", tls_multi->remote_ciphername);
-    // msg(M_INFO, "%s", push_cipher);
     if (push_cipher)
     {
         o->ciphername = push_cipher;

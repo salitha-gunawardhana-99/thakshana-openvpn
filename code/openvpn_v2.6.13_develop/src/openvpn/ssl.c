@@ -502,6 +502,7 @@ tls_ctx_reload_crl(struct tls_root_ctx *ssl_ctx, const char *crl_file,
  */
 void init_ssl(const struct options *options, struct tls_root_ctx *new_ctx, bool in_chroot)
 {
+    msg(M_INFO, "%s", "==========in init_ssl init_ssl ---------------------");
     ASSERT(NULL != new_ctx);
 
     tls_clear_error();
@@ -1975,9 +1976,12 @@ push_peer_info(struct buffer *buf, struct tls_session *session)
                 }
             }
         }
+        // const char *peer_info_str = BSTR(&out);
+        // msg(M_INFO, "Peer Info:\n%s", peer_info_str);
 
         if (!write_string(buf, BSTR(&out), -1))
         {
+            // msg(M_INFO, "write_string() failed: buf=%p, out=%s", buf, BSTR(&out));
             goto error;
         }
     }

@@ -187,7 +187,6 @@ check_tls(struct context *c)
     {
         const int tmp_status = tls_multi_process(c->c2.tls_multi, &c->c2.to_link, &c->c2.to_link_addr,
                                                  get_link_socket_info(c), &wakeup);
-        // msg(M_INFO, "tmp_status: %d", tmp_status);
 
         if (tmp_status == TLSMP_RECONNECT)
         {
@@ -319,7 +318,6 @@ check_incoming_control_channel(struct context *c)
 static void
 check_push_request(struct context *c)
 {
-    // msg(M_INFO, "%s", "==========in to check_push_request");
     send_push_request(c);
 
     /* if no response to first push_request, retry at PUSH_REQUEST_INTERVAL second intervals */
@@ -2286,6 +2284,11 @@ void process_io(struct context *c, struct link_socket *sock)
         management_io(management);
     }
 #endif
+
+    /*
+    Before writing to the socket → Encryption happens.
+    Before writing to the TUN interface → Decryption happens.
+    */
 
     /* TCP/UDP port ready to accept write */
     if (status & SOCKET_WRITE)

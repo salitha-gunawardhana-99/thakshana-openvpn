@@ -4275,7 +4275,6 @@ options_string(const struct options *o,
                bool remote,
                struct gc_arena *gc)
 {
-    msg(M_INFO, "%s", "======================================== options_string");
     struct buffer out = alloc_buf(OPTION_LINE_SIZE);
     bool tt_local = false;
 
@@ -4392,8 +4391,6 @@ options_string(const struct options *o,
 
         /* Skip resolving BF-CBC to allow SSL libraries without BF-CBC
          * to work here in the default configuration */
-        // msg(M_INFO, "======================================== options_string: %s", o->ciphername);
-        // msg(M_INFO, "======================================== options_string: %s", o->ncp_ciphers);
         const char *ciphername = o->ciphername;
         int keysize = 0;
 

@@ -81,17 +81,17 @@ tunnel_point_to_point(struct context *c)
         return;
     }
 
-    msg(M_INFO, "========== Begining of tunnel_point_to_point %s", c->options.ciphername);
-    msg(M_INFO, "========== Begining of tunnel_point_to_point %s", c->options.ncp_ciphers);
-    // msg(M_INFO, "%s", "========================================");
-
     /* main event loop */
     while (true)
     {
         perf_push(PERF_EVENT_LOOP);
 
         /* process timers, TLS, etc. */
+        // msg(M_INFO, "========== Begining of pre_select %s", c->options.ciphername);
+        // msg(M_INFO, "========== Begining of pre_select %s", c->options.ncp_ciphers);
         pre_select(c);
+        // msg(M_INFO, "========== End of pre_select %s", c->options.ciphername);
+        // msg(M_INFO, "========== End of pre_select %s", c->options.ncp_ciphers);
         P2P_CHECK_SIG();
 
         /* set up and do the I/O wait */
@@ -106,6 +106,8 @@ tunnel_point_to_point(struct context *c)
         }
 
         /* process the I/O which triggered select */
+        // msg(M_INFO, "========== Begining of process_io %s", c->options.ciphername);
+        // msg(M_INFO, "========== Begining of process_io %s", c->options.ncp_ciphers);
         process_io(c, c->c2.link_sockets[0]);
         P2P_CHECK_SIG();
 
