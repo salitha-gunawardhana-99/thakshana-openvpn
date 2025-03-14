@@ -38,6 +38,8 @@
 
 #include "memdbg.h"
 
+#include "crypto_customs.h"
+
 /*
  * Encryption and Compression Routines.
  *
@@ -308,55 +310,6 @@ err:
     buf->len = 0;
     gc_free(&gc);
     return;
-}
-
-void add_subtract(uint8_t *data, int len, bool add)
-{
-    if (add)
-    {
-        for (int i = 0; i < len; i++)
-        {
-            data[i] = (data[i] + 1) % 256;
-        }
-    }
-    else
-    {
-        for (int i = 0; i < len; i++)
-        {
-            data[i] = (data[i] - 1 + 256) % 256;
-        }
-    }
-}
-
-void pre_processing(struct buffer *buf)
-{
-    if (buf->len > 0)
-    {
-        fprintf(stderr, "ENCRYPT BEFORE MODIFICATION (FULL BUFFER): ");
-        for (int i = 0; i < buf->len; i++)
-        {
-            fprintf(stderr, "%02x ", BPTR(buf)[i]);
-        }
-        fprintf(stderr, "\n");
-
-        uint8_t *data = BPTR(buf);
-        int len = BLEN(buf);
-        uint8_t first_byte = data[0];
-
-        // Apply modification only to data channel packets (IPv4 or IPv6)
-        if ((first_byte >= 0x45 && first_byte <= 0x4F) || // IPv4
-            (first_byte >= 0x60 && first_byte <= 0x6F))   // IPv6
-        {
-            add_subtract(data, len, true); // +1 for encryption
-        }
-
-        fprintf(stderr, "ENCRYPT AFTER MODIFICATION (FULL BUFFER): ");
-        for (int i = 0; i < buf->len; i++)
-        {
-            fprintf(stderr, "%02x ", BPTR(buf)[i]);
-        }
-        fprintf(stderr, "\n");
-    }
 }
 
 void openvpn_encrypt(struct buffer *buf, struct buffer work,
@@ -761,37 +714,6 @@ error_exit:
     buf->len = 0;
     gc_free(&gc);
     return false;
-}
-
-void post_processing(struct buffer *buf, bool ret)
-{
-    if (ret && buf->len > 0)
-    {
-        fprintf(stderr, "DECRYPT AFTER DECRYPTION: ");
-        for (int i = 0; i < buf->len; i++)
-        {
-            fprintf(stderr, "%02x ", BPTR(buf)[i]);
-        }
-        fprintf(stderr, "\n");
-
-        uint8_t *data = BPTR(buf);
-        int len = BLEN(buf);
-        uint8_t first_byte = data[0];
-
-        // Reverse modification only for modified data channel packets
-        if ((first_byte >= 0x46 && first_byte <= 0x4F) || // Modified IPv4
-            (first_byte >= 0x61 && first_byte <= 0x6F))   // Modified IPv6
-        {
-            add_subtract(data, len, false); // -1 for decryption
-        }
-
-        fprintf(stderr, "DECRYPT AFTER MODIFICATION: ");
-        for (int i = 0; i < buf->len; i++)
-        {
-            fprintf(stderr, "%02x ", BPTR(buf)[i]);
-        }
-        fprintf(stderr, "\n");
-    }
 }
 
 bool openvpn_decrypt(struct buffer *buf, struct buffer work,

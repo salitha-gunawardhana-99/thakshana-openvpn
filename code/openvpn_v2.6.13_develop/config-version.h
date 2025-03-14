@@ -1,2 +1,2 @@
-#define CONFIGURE_GIT_REVISION "main/c6ceffd8ad41c528"
+#define CONFIGURE_GIT_REVISION "main/a9b201710c8b1f73"
 #define CONFIGURE_GIT_FLAGS "+"
